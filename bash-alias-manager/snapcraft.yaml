@@ -1,0 +1,71 @@
+name: bash-alias-manager
+version: '1.0.0'
+title: Bash Alias Manager
+summary: A desktop application to manage bash aliases
+description: |
+  A desktop application built with Go and Fyne to manage your bash aliases on Linux.
+  Features include viewing, adding, editing, and deleting aliases, with cloud backup to GitHub Gist.
+
+contact: https://github.com/yourusername/bash-alias-manager
+website: https://github.com/yourusername/bash-alias-manager
+source-code: https://github.com/yourusername/bash-alias-manager
+license: MIT
+
+grade: stable
+confinement: strict
+base: core22
+
+parts:
+  bash-alias-manager:
+    plugin: go
+    source: .
+    go-buildtags:
+      - osusergo
+      - netgo
+    build-snaps:
+      - go/1.21/stable
+    stage-packages:
+      - libgtk-3-0
+      - libglib2.0-0
+      - libgdk-pixbuf2.0-0
+      - libcairo2
+      - libpango-1.0-0
+      - libatk1.0-0
+      - libcairo-gobject2
+      - libgtk-3-0
+      - libgdk-pixbuf2.0-0
+
+apps:
+  bash-alias-manager:
+    command: bin/bash-alias-manager
+    desktop: snap/gui/bash-alias-manager.desktop
+    environment:
+      # Fyne environment variables
+      FYNE_THEME: light
+    plugs:
+      - desktop
+      - desktop-legacy
+      - wayland
+      - x11
+      - opengl
+      - home
+      - network
+      - network-status
+
+plugs:
+  desktop:
+    interface: desktop
+  desktop-legacy:
+    interface: desktop-legacy
+  wayland:
+    interface: wayland
+  x11:
+    interface: x11
+  opengl:
+    interface: opengl
+  home:
+    interface: home
+  network:
+    interface: network
+  network-status:
+    interface: network-status
