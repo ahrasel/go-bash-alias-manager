@@ -8,6 +8,7 @@ import (
 	"os"
 	"os/exec"
 	"strings"
+	"io/ioutil"
 
 	"github.com/google/go-github/v53/github"
 	"golang.org/x/oauth2"
@@ -16,6 +17,7 @@ import (
 	"fyne.io/fyne/v2/app"
 	"fyne.io/fyne/v2/container"
 	"fyne.io/fyne/v2/dialog"
+	"fyne.io/fyne/v2/storage"
 	"fyne.io/fyne/v2/widget"
 )
 
@@ -38,16 +40,27 @@ type AliasManager struct {
 }
 
 func (am *AliasManager) loadAliases() error {
-	home, err := os.UserHomeDir()
-	if err != nil {
-		return err
+	home := os.Getenv("SNAP_REAL_HOME")
+	if home == "" {
+		var err error
+		home, err = os.UserHomeDir()
+		if err != nil {
+			return err
+		}
 	}
+	fmt.Fprintf(os.Stderr, "Loading aliases from: %s/.bash_aliases\n", home)
 	file, err := os.Open(home + "/.bash_aliases")
 	if err != nil {
 		if os.IsNotExist(err) {
+			fmt.Fprintf(os.Stderr, "File does not exist, creating empty alias list\n")
 			am.aliases = []Alias{}
 			return nil
 		}
+		// Permission denied indicates confinement (snap) preventing dotfile access
+		if os.IsPermission(err) {
+			return fmt.Errorf("permission-denied")
+		}
+		fmt.Fprintf(os.Stderr, "Error opening file: %v\n", err)
 		return err
 	}
 	defer file.Close()
@@ -62,16 +75,62 @@ func (am *AliasManager) loadAliases() error {
 				name := strings.TrimSpace(parts[0])
 				cmd := strings.Trim(strings.TrimSpace(parts[1]), "'\"")
 				am.aliases = append(am.aliases, Alias{Name: name, Command: cmd})
+				fmt.Fprintf(os.Stderr, "Loaded alias: %s = %s\n", name, cmd)
+			}
+		}
+	}
+	fmt.Fprintf(os.Stderr, "Total aliases loaded: %d\n", len(am.aliases))
+	return scanner.Err()
+}
+
+// importAliasesFromBytes loads aliases from the provided bytes
+func (am *AliasManager) importAliasesFromBytes(content []byte) error {
+	am.aliases = []Alias{}
+	scanner := bufio.NewScanner(strings.NewReader(string(content)))
+	for scanner.Scan() {
+		line := strings.TrimSpace(scanner.Text())
+		if strings.HasPrefix(line, "alias ") && strings.Contains(line, "=") {
+			parts := strings.SplitN(line[6:], "=", 2)
+			if len(parts) == 2 {
+				name := strings.TrimSpace(parts[0])
+				cmd := strings.Trim(strings.TrimSpace(parts[1]), "'\"")
+				am.aliases = append(am.aliases, Alias{Name: name, Command: cmd})
 			}
 		}
 	}
 	return scanner.Err()
 }
 
+// promptForAliasFile opens a file dialog to let user select an aliases file for import
+func (am *AliasManager) promptForAliasFile() {
+	fd := dialog.NewFileOpen(func(reader fyne.URIReadCloser, err error) {
+		if err != nil || reader == nil {
+			return
+		}
+		defer reader.Close()
+		content, rerr := ioutil.ReadAll(reader)
+		if rerr != nil {
+			dialog.ShowError(rerr, am.window)
+			return
+		}
+		if err := am.importAliasesFromBytes(content); err != nil {
+			dialog.ShowError(err, am.window)
+			return
+		}
+		am.refreshList()
+	}, am.window)
+	fd.SetFilter(storage.NewExtensionFileFilter([]string{"aliases", "txt", "sh"}))
+	fd.Show()
+}
+
 func (am *AliasManager) saveAliases() error {
-	home, err := os.UserHomeDir()
-	if err != nil {
-		return err
+	home := os.Getenv("SNAP_REAL_HOME")
+	if home == "" {
+		var err error
+		home, err = os.UserHomeDir()
+		if err != nil {
+			return err
+		}
 	}
 	file, err := os.Create(home + "/.bash_aliases")
 	if err != nil {
@@ -86,9 +145,13 @@ func (am *AliasManager) saveAliases() error {
 }
 
 func (am *AliasManager) ensureBashrcSources() error {
-	home, err := os.UserHomeDir()
-	if err != nil {
-		return err
+	home := os.Getenv("SNAP_REAL_HOME")
+	if home == "" {
+		var err error
+		home, err = os.UserHomeDir()
+		if err != nil {
+			return err
+		}
 	}
 	bashrcPath := home + "/.bashrc"
 	file, err := os.Open(bashrcPath)
@@ -115,9 +178,13 @@ func (am *AliasManager) ensureBashrcSources() error {
 }
 
 func (am *AliasManager) loadConfig() error {
-	home, err := os.UserHomeDir()
-	if err != nil {
-		return err
+	home := os.Getenv("SNAP_REAL_HOME")
+	if home == "" {
+		var err error
+		home, err = os.UserHomeDir()
+		if err != nil {
+			return err
+		}
 	}
 	configPath := home + "/.bash_alias_manager.json"
 	file, err := os.Open(configPath)
@@ -133,9 +200,13 @@ func (am *AliasManager) loadConfig() error {
 }
 
 func (am *AliasManager) saveConfig() error {
-	home, err := os.UserHomeDir()
-	if err != nil {
-		return err
+	home := os.Getenv("SNAP_REAL_HOME")
+	if home == "" {
+		var err error
+		home, err = os.UserHomeDir()
+		if err != nil {
+			return err
+		}
 	}
 	configPath := home + "/.bash_alias_manager.json"
 	file, err := os.Create(configPath)
@@ -187,16 +258,41 @@ func (am *AliasManager) doBackup() {
 		return
 	}
 
-	home, _ := os.UserHomeDir()
+	home := os.Getenv("SNAP_REAL_HOME")
+	if home == "" {
+		home, _ = os.UserHomeDir()
+	}
 	content, err := os.ReadFile(home + "/.bash_aliases")
 	if err != nil {
 		if os.IsNotExist(err) {
 			content = []byte("")
+			// proceed with empty content
+		} else if os.IsPermission(err) {
+			// Cannot read dotfile due to confinement: ask user to select file to backup
+			fd := dialog.NewFileOpen(func(reader fyne.URIReadCloser, rerr error) {
+				if rerr != nil || reader == nil {
+					return
+				}
+				defer reader.Close()
+				b, _ := ioutil.ReadAll(reader)
+				am.createGistFromContent(b)
+			}, am.window)
+			fd.SetFilter(storage.NewExtensionFileFilter([]string{"aliases", "txt", "sh"}))
+			fd.Show()
+			return
 		} else {
 			dialog.ShowError(err, am.window)
 			return
 		}
 	}
+	am.createGistFromContent(content)
+}
+
+func (am *AliasManager) createGistFromContent(content []byte) {
+	ctx := context.Background()
+	ts := oauth2.StaticTokenSource(&oauth2.Token{AccessToken: am.config.GitHubToken})
+	tc := oauth2.NewClient(ctx, ts)
+	client := github.NewClient(tc)
 
 	files := map[github.GistFilename]github.GistFile{
 		"bash_aliases": {Content: github.String(string(content))},
@@ -262,9 +358,35 @@ func (am *AliasManager) restoreFromGist() {
 		return
 	}
 
-	home, _ := os.UserHomeDir()
+	home := os.Getenv("SNAP_REAL_HOME")
+	if home == "" {
+		home, _ = os.UserHomeDir()
+	}
 	err = os.WriteFile(home+"/.bash_aliases", []byte(*file.Content), 0644)
 	if err != nil {
+		if os.IsPermission(err) {
+			// Ask user to save file via portal
+			fd := dialog.NewFileSave(func(writer fyne.URIWriteCloser, werr error) {
+				if werr != nil || writer == nil {
+					return
+				}
+				defer writer.Close()
+				if _, werr := writer.Write([]byte(*file.Content)); werr != nil {
+					dialog.ShowError(werr, am.window)
+					return
+				}
+				// After saving, load the content into the app
+				if lerr := am.importAliasesFromBytes([]byte(*file.Content)); lerr != nil {
+					dialog.ShowError(lerr, am.window)
+					return
+				}
+				am.refreshList()
+			}, am.window)
+			fd.SetFileName(".bash_aliases")
+			fd.SetFilter(storage.NewExtensionFileFilter([]string{"aliases", "txt", "sh"}))
+			fd.Show()
+			return
+		}
 		dialog.ShowError(err, am.window)
 		return
 	}
@@ -388,10 +510,39 @@ func main() {
 	am := &AliasManager{window: w, selectedIndex: -1}
 	err := am.loadAliases()
 	if err != nil {
-		dialog.ShowError(err, w)
+		if err.Error() == "permission-denied" {
+			// Snap confined: ask user to import their aliases via file chooser
+			resp := dialog.NewConfirm("Permission Denied", "Cannot access ~/.bash_aliases due to sandboxing. Would you like to select the file to import?", func(confirmed bool) {
+				if confirmed {
+					am.promptForAliasFile()
+				}
+			}, w)
+			resp.Show()
+		} else {
+			dialog.ShowError(err, w)
+		}
 	}
 
-	am.ensureBashrcSources() // ensure .bashrc sources .bash_aliases
+	// Try to ensure .bashrc sources .bash_aliases, but if permission denied, instruct user
+	if err := am.ensureBashrcSources(); err != nil {
+		if os.IsPermission(err) {
+			d := dialog.NewConfirm("Permission Denied", "Cannot edit ~/.bashrc due to sandboxing. To ensure aliases are loaded, please add the following lines to your ~/.bashrc manually:\n\nif [ -f ~/.bash_aliases ]; then\n    . ~/.bash_aliases\nfi\n\nWould you like to open the .bashrc file to edit it?", func(confirmed bool) {
+				if confirmed {
+					// Let user select the .bashrc file via portal
+					fd := dialog.NewFileOpen(func(reader fyne.URIReadCloser, err error) {
+						if err != nil || reader == nil {
+							return
+						}
+						defer reader.Close()
+						// We open the file for the user to edit in their editor manually; we don't write it ourselves
+					}, w)
+					fd.SetFilter(storage.NewExtensionFileFilter([]string{"bashrc", "sh", "txt"}))
+					fd.Show()
+				}
+			}, w)
+			d.Show()
+		}
+	}
 
 	err = am.loadConfig()
 	if err != nil {

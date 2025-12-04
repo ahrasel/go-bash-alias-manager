@@ -1,19 +1,19 @@
 name: bash-alias-manager
-version: '1.0.0'
+version: '1.1.0'
 title: Bash Alias Manager
 summary: A desktop application to manage bash aliases
 description: |
   A desktop application built with Go and Fyne to manage your bash aliases on Linux.
   Features include viewing, adding, editing, and deleting aliases, with cloud backup to GitHub Gist.
 
-contact: https://github.com/yourusername/bash-alias-manager
-website: https://github.com/yourusername/bash-alias-manager
-source-code: https://github.com/yourusername/bash-alias-manager
+contact: https://github.com/ahrasel/bash-alias-manager
+website: https://github.com/ahrasel/bash-alias-manager
+source-code: https://github.com/ahrasel/bash-alias-manager
 license: MIT
 
 grade: stable
 confinement: strict
-base: core22
+base: core24
 
 parts:
   bash-alias-manager:
@@ -34,14 +34,53 @@ parts:
       - libcairo-gobject2
       - libgtk-3-0
       - libgdk-pixbuf2.0-0
+      - libx11-6
+      - libxcursor1
+      - libxrandr2
+      - libxss1
+      - libxtst6
+      - libxdamage1
+      - libxfixes3
+      - libxi6
+      - libxrender1
+      - libxext6
+      - libxcomposite1
+      - libasound2
+      - libdrm2
+      - libxkbcommon0
+      - libgtk-3-0
+      - libgdk-pixbuf2.0-0
+      - libcairo-gobject2
+      - libpango-1.0-0
+      - libatk1.0-0
+      - libcairo2
+      - libglib2.0-0
+      - libgobject-2.0-0
+      - libpangocairo-1.0-0
+      - libgl1
+      - libglx-mesa0
+      - libglvnd0
 
 apps:
   bash-alias-manager:
     command: bin/bash-alias-manager
     desktop: snap/gui/bash-alias-manager.desktop
     environment:
-      # Fyne environment variables
-      FYNE_THEME: light
+      # GTK environment variables for proper GUI support
+      GTK_USE_PORTAL: "1"
+      XDG_SESSION_TYPE: wayland
+      XDG_CURRENT_DESKTOP: GNOME
+      # Disable GTK accessibility bus
+      NO_AT_BRIDGE: "1"
+      # X11 environment variables
+      DISPLAY: ":0"
+      # Set proper paths
+      PATH: "$SNAP/usr/sbin:$SNAP/usr/bin:$SNAP/sbin:$SNAP/bin:$PATH"
+      LD_LIBRARY_PATH: "$SNAP/usr/lib/x86_64-linux-gnu:$SNAP/lib/x86_64-linux-gnu:$LD_LIBRARY_PATH"
+      # Additional GTK environment variables
+      GTK_MODULES: ""
+      GTK_PATH: "$SNAP/usr/lib/x86_64-linux-gnu/gtk-3.0"
+      GIO_MODULE_DIR: "$SNAP/usr/lib/x86_64-linux-gnu/gio/modules"
     plugs:
       - desktop
       - desktop-legacy
@@ -49,23 +88,20 @@ apps:
       - x11
       - opengl
       - home
+      - dot-bash-aliases
       - network
       - network-status
+      - audio-playback
+      - audio-record
+      - unity7
+      - gsettings
 
 plugs:
-  desktop:
-    interface: desktop
-  desktop-legacy:
-    interface: desktop-legacy
-  wayland:
-    interface: wayland
-  x11:
-    interface: x11
-  opengl:
-    interface: opengl
-  home:
-    interface: home
-  network:
-    interface: network
-  network-status:
-    interface: network-status
+  dot-bash-aliases:
+    interface: personal-files
+    read:
+      - $HOME/.bash_aliases
+      - $HOME/.bashrc
+      - $HOME/.bash_alias_manager.json
+    write:
+      - $HOME/.bash_alias_manager.json
