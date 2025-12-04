@@ -1,5 +1,9 @@
 # Bash Alias Manager
 
+[![Get it from the Snap Store](https://snapcraft.io/en/dark/install.svg)](https://snapcraft.io/bash-alias-manager)
+
+https://github.com/ahrasel/go-bash-alias-manager
+
 A desktop application built with Go and Fyne to manage your bash aliases on Linux.
 
 ## Features
