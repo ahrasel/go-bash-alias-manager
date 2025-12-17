@@ -3,11 +3,19 @@ package main
 import (
 	"bufio"
 	"context"
+	"crypto/sha256"
+	"embed"
+	"encoding/hex"
 	"encoding/json"
 	"fmt"
+	"io"
 	"io/ioutil"
+	"net/http"
 	"os"
 	"os/exec"
+	"path/filepath"
+	"runtime"
+	"strconv"
 	"strings"
 
 	"github.com/google/go-github/v53/github"
@@ -38,6 +46,12 @@ type AliasManager struct {
 	selectedIndex int
 	config        Config
 }
+
+// Version is set at build time via -ldflags "-X main.Version=..."
+var Version = "dev"
+
+//go:embed assets/icon.svg
+var iconSVG []byte
 
 func (am *AliasManager) loadAliases() error {
 	home := os.Getenv("SNAP_REAL_HOME")
@@ -219,6 +233,169 @@ func (am *AliasManager) saveConfig() error {
 
 func (am *AliasManager) refreshList() {
 	am.list.Refresh()
+}
+
+// showAbout displays an about dialog with version and developer information
+func (am *AliasManager) showAbout() {
+	info := fmt.Sprintf("Bash Alias Manager\nVersion: %s\nDeveloper: ahrasel\nRepository: https://github.com/ahrasel/go-bash-alias-manager", Version)
+	dialog.ShowInformation("About", info, am.window)
+}
+
+// checkForUpdate contacts GitHub Releases, checks latest tag and if newer offers to download and replace the binary.
+func (am *AliasManager) checkForUpdate() {
+	url := "https://api.github.com/repos/ahrasel/go-bash-alias-manager/releases/latest"
+	resp, err := http.Get(url)
+	if err != nil {
+		dialog.ShowError(fmt.Errorf("Failed to check for update: %v", err), am.window)
+		return
+	}
+	defer resp.Body.Close()
+	if resp.StatusCode != 200 {
+		dialog.ShowError(fmt.Errorf("Update check failed: status %d", resp.StatusCode), am.window)
+		return
+	}
+	var rel map[string]interface{}
+	dec := json.NewDecoder(resp.Body)
+	if err := dec.Decode(&rel); err != nil {
+		dialog.ShowError(fmt.Errorf("Invalid response checking updates: %v", err), am.window)
+		return
+	}
+	tag, _ := rel["tag_name"].(string)
+	if tag == "" {
+		dialog.ShowInformation("Update", "No release tag found", am.window)
+		return
+	}
+	if !versionGreater(tag, Version) {
+		dialog.ShowInformation("Update", "You are already running the latest version", am.window)
+		return
+	}
+	confirm := dialog.NewConfirm("Update available", fmt.Sprintf("A new version %s is available (current %s). Update now?", tag, Version), func(ok bool) {
+		if !ok {
+			return
+		}
+		// find matching asset
+		assets, _ := rel["assets"].([]interface{})
+		goos := runtime.GOOS
+		goarch := runtime.GOARCH
+		// map GOARCH names to our asset naming (amd64 -> amd64, arm64 -> arm64)
+		var assetURL string
+		for _, a := range assets {
+			m := a.(map[string]interface{})
+			name := m["name"].(string)
+			if strings.Contains(name, fmt.Sprintf("_%s_%s", goos, goarch)) {
+				if strings.HasSuffix(name, ".tar.gz") || strings.HasSuffix(name, ".zip") {
+					assetURL = m["browser_download_url"].(string)
+					break
+				}
+			}
+		}
+		if assetURL == "" {
+			dialog.ShowError(fmt.Errorf("No matching release asset found for %s/%s", goos, goarch), am.window)
+			return
+		}
+		// Download asset
+		tmpd, err := os.MkdirTemp("", "bam-update-")
+		if err != nil {
+			dialog.ShowError(err, am.window)
+			return
+		}
+		defer os.RemoveAll(tmpd)
+		assetPath := filepath.Join(tmpd, "asset")
+		out, err := os.Create(assetPath)
+		if err != nil {
+			dialog.ShowError(err, am.window)
+			return
+		}
+		resp2, err := http.Get(assetURL)
+		if err != nil {
+			dialog.ShowError(err, am.window)
+			out.Close()
+			return
+		}
+		_, err = io.Copy(out, resp2.Body)
+		resp2.Body.Close()
+		out.Close()
+		if err != nil {
+			dialog.ShowError(err, am.window)
+			return
+		}
+		// Extract and locate binary
+		extractDir := filepath.Join(tmpd, "extracted")
+		os.MkdirAll(extractDir, 0755)
+		if strings.HasSuffix(assetPath, ".zip") {
+			dialog.ShowInformation("Update", "Zip-based assets not yet supported for in-place update; please re-run the installer from the release page.", am.window)
+			return
+		} else {
+			// tar.gz
+			if err := exec.Command("tar", "-xzf", assetPath, "-C", extractDir).Run(); err != nil {
+				dialog.ShowError(fmt.Errorf("Failed to extract update: %v", err), am.window)
+				return
+			}
+		}
+		// find binary
+		var newBin string
+		filepath.WalkDir(extractDir, func(p string, d os.DirEntry, err error) error {
+			if err != nil {
+				return nil
+			}
+			if !d.IsDir() && strings.Contains(d.Name(), "bash-alias-manager") && (d.Type()&0111 != 0) {
+				newBin = p
+				return io.EOF
+			}
+			return nil
+		})
+		if newBin == "" {
+			dialog.ShowError(fmt.Errorf("Could not find new binary in archive"), am.window)
+			return
+		}
+		// compute checksum of downloaded file for info
+		data, _ := os.ReadFile(newBin)
+		sum := sha256.Sum256(data)
+		// attempt to replace current executable
+		exe, err := os.Executable()
+		if err != nil {
+			dialog.ShowError(fmt.Errorf("Could not determine executable path: %v", err), am.window)
+			return
+		}
+		// try to overwrite
+		if err := os.WriteFile(exe, data, 0755); err != nil {
+			// likely permission denied
+			dialog.ShowError(fmt.Errorf("Failed to update in-place: %v. Please run the installer as described in the README.", err), am.window)
+			return
+		}
+		dialog.ShowInformation("Update", fmt.Sprintf("Updated to %s (sha256: %s). Please restart the application.", tag, hex.EncodeToString(sum[:])), am.window)
+	}, am.window)
+	confirm.Show()
+}
+
+// versionGreater compares semantic versions like v1.2.3
+func versionGreater(a, b string) bool {
+	// strip leading v
+	if strings.HasPrefix(a, "v") {
+		a = a[1:]
+	}
+	if strings.HasPrefix(b, "v") {
+		b = b[1:]
+	}
+	ap := strings.Split(a, ".")
+	bp := strings.Split(b, ".")
+	for i := 0; i < 3; i++ {
+		ai := 0
+		bi := 0
+		if i < len(ap) {
+			ai, _ = strconv.Atoi(ap[i])
+		}
+		if i < len(bp) {
+			bi, _ = strconv.Atoi(bp[i])
+		}
+		if ai > bi {
+			return true
+		}
+		if ai < bi {
+			return false
+		}
+	}
+	return false
 }
 
 func (am *AliasManager) backupToGist() {
@@ -585,8 +762,10 @@ func main() {
 	reloadBtn := widget.NewButton("Reload", am.reloadAliases)
 	backupBtn := widget.NewButton("Backup", am.backupToGist)
 	restoreBtn := widget.NewButton("Restore", am.restoreFromGist)
+	updateBtn := widget.NewButton("Update", am.checkForUpdate)
+	aboutBtn := widget.NewButton("About", am.showAbout)
 
-	buttonBox := container.NewHBox(addBtn, editBtn, deleteBtn, saveBtn, reloadBtn, backupBtn, restoreBtn)
+	buttonBox := container.NewHBox(addBtn, editBtn, deleteBtn, saveBtn, reloadBtn, backupBtn, restoreBtn, updateBtn, aboutBtn)
 
 	w.SetContent(container.NewBorder(
 		nil,

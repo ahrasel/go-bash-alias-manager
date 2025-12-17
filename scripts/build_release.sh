@@ -44,7 +44,7 @@ for t in "${TARGETS[@]}"; do
         CGO=0
     fi
 
-    if env CGO_ENABLED=$CGO GOOS=$GOOS GOARCH=$GOARCH go build -ldflags "-s -w" -o "$OUTDIR/$BINNAME" ./...; then
+    if env CGO_ENABLED=$CGO GOOS=$GOOS GOARCH=$GOARCH go build -ldflags "-s -w -X main.Version=$VERSION" -o "$OUTDIR/$BINNAME" ./...; then
         echo "- Built $OUTDIR/$BINNAME"
     else
         echo "Error: 'go build' failed for $GOOS/$GOARCH. The GUI (Fyne) may require native libraries or CGO;" >&2
