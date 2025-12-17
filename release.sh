@@ -45,6 +45,9 @@ show_usage() {
     echo "  status         Check snap status in store"
     echo "  clean          Clean build artifacts"
     echo "  full           Build, upload, and release (requires login)"
+    echo "  package        Build GitHub release artifacts (tar.gz/zip + checksums)"
+    echo "  gh-release     Create a GitHub release and upload assets (requires GH CLI or GITHUB_TOKEN)"
+    echo "  gh-full        Package and publish GitHub release (build -> create release -> upload assets)"
     echo "  help           Show this help"
     echo ""
     echo "Options:"
@@ -57,6 +60,60 @@ show_usage() {
     echo "  $0 upload"
     echo "  $0 release --channel beta"
     echo "  $0 full --channel stable"
+}
+
+# Build GitHub release artifacts
+package_release() {
+    log_info "Packaging release artifacts"
+    scripts/build_release.sh
+    log_success "Packaging complete"
+}
+
+# Create GitHub release using gh (preferred) or GitHub API
+gh_create_release() {
+    VERSION_TAG="$1"
+    DIST_DIR="$PROJECT_DIR/dist"
+
+    if command -v gh >/dev/null 2>&1; then
+        log_info "Creating GitHub release (gh) $VERSION_TAG"
+        gh release create "$VERSION_TAG" "$DIST_DIR"/*.{tar.gz,zip} --title "$VERSION_TAG" --notes "Release $VERSION_TAG" || true
+        log_success "GitHub release created via gh"
+        return 0
+    fi
+
+    # Fallback: use GitHub API if GITHUB_TOKEN is present
+    if [ -z "${GITHUB_TOKEN:-}" ]; then
+        log_error "gh CLI not found and GITHUB_TOKEN not set; cannot create GitHub release"
+        exit 1
+    fi
+
+    if ! command -v jq >/dev/null 2>&1; then
+        log_error "The 'jq' command is required for GitHub API fallback. Install it or use the 'gh' CLI."
+        exit 1
+    fi
+
+    log_info "Creating GitHub release via API: $VERSION_TAG"
+    # create release
+    owner_repo="${GITHUB_REPO:-ahrasel/go-bash-alias-manager}"
+    api_url="https://api.github.com/repos/$owner_repo/releases"
+    post_data=$(jq -n --arg tag "$VERSION_TAG" --arg name "$VERSION_TAG" --arg body "Release $VERSION_TAG" '{tag_name:$tag, name:$name, body:$body, draft:false, prerelease:false}')
+    release_response=$(curl -sS -H "Authorization: token $GITHUB_TOKEN" -H "Content-Type: application/json" -d "$post_data" "$api_url")
+    upload_url=$(echo "$release_response" | jq -r .upload_url | sed -e 's/{?name,label}//')
+    if [ -z "$upload_url" ] || [ "$upload_url" = "null" ]; then
+        log_error "Failed to create release via API"
+        echo "$release_response" | jq .
+        exit 1
+    fi
+
+    # upload assets
+    for f in "$DIST_DIR"/*.{tar.gz,zip}; do
+        [ -e "$f" ] || continue
+        fname=$(basename "$f")
+        log_info "Uploading $fname"
+        curl -sS -H "Authorization: token $GITHUB_TOKEN" -H "Content-Type: application/octet-stream" --data-binary "@$f" "$upload_url?name=$fname"
+    done
+
+    log_success "GitHub release created and assets uploaded"
 }
 
 # Function to check if snapcraft is logged in
@@ -223,6 +280,28 @@ main() {
         build)
             snap_file=$(build_snap)
             echo "Built snap: $snap_file"
+            ;;
+        package)
+            package_release
+            ;;
+        gh-release)
+            # Determine tag to use
+            if [ -n "$version" ]; then
+                tag="$version"
+            else
+                tag="$(git describe --tags --always)"
+            fi
+            gh_create_release "$tag"
+            ;;
+        gh-full)
+            # Build artifacts and publish to GitHub
+            package_release
+            if [ -n "$version" ]; then
+                tag="$version"
+            else
+                tag="$(git describe --tags --always)"
+            fi
+            gh_create_release "$tag"
             ;;
         upload)
             if [ -z "$snap_file" ]; then
