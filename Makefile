@@ -11,6 +11,7 @@ help:
 	@echo "  make release VERSION=v1.2.3 # build, tag and create GitHub release (requires gh)"
 	@echo "  make upload-install VERSION=v1.2.3 # upload install.sh to existing release"
 	@echo "  make cut-release VERSION=v1.2.3  # convenience: build, tag, create release, upload install.sh"
+	@echo "  Use FORCE=true to replace an existing tag: make tag VERSION=v1.2.3 FORCE=true"
 
 build:
 	@echo "Building artifacts..."
@@ -18,6 +19,14 @@ build:
 
 tag:
 	@if [ -z "$(VERSION)" ]; then echo "ERROR: VERSION is required. Example: make tag VERSION=v1.2.3"; exit 1; fi
+	@if git rev-parse -q --verify refs/tags/$(VERSION) >/dev/null; then \
+		if [ "$(FORCE)" = "true" ]; then \
+			echo "Tag $(VERSION) exists; deleting and recreating (force)"; \
+			git tag -d $(VERSION) || true; git push --delete origin $(VERSION) || true; \
+		else \
+			echo "ERROR: tag '$(VERSION)' already exists. To replace it, run 'make tag VERSION=$(VERSION) FORCE=true'"; exit 1; \
+		fi \
+	fi
 	@git tag -a $(VERSION) -m "Release $(VERSION)"
 	@git push origin $(VERSION)
 
