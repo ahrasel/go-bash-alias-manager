@@ -101,4 +101,6 @@ The build script (`scripts/build_release.sh`) produces cross-compiled binaries a
 
 Note: CI now installs native GTK/OpenGL build dependencies on Ubuntu runners so Linux/Fyne builds should succeed automatically when you push a tag. If you see a linker error like "cannot find -lXxf86vm" or similar, install the missing X11/GL development package locally (on Debian/Ubuntu: `sudo apt-get install libxxf86vm-dev`) and retry; alternately provide a prebuilt binary in `dist/` before publishing.
 
+Tip: The installer uses `jq` for reliable JSON parsing of GitHub release assets. If `jq` is not installed, the installer will fall back to a slower text-based parse and will print a note recommending `jq` (install with `sudo apt-get install jq`).
+
 Contributions to make builds reproducible across macOS/Windows are welcome.
