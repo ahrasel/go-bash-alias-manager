@@ -35,6 +35,8 @@ jobs:
 
       - name: Generate documentation page
         id: genpage
+        env:
+          GH_TOKEN: ${{ github.token }}
         run: |
           mkdir -p site
           REPO="${{ github.repository }}"
