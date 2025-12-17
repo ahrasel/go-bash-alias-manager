@@ -38,14 +38,12 @@ jobs:
                   chmod +x scripts/build_release.sh
                   ./scripts/build_release.sh
 
-            - name: Authenticate gh CLI
-              env:
-                  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-              run: |
-                  if ! command -v gh >/dev/null 2>&1; then
-                    sudo apt-get update && sudo apt-get install -y gh
-                  fi
-                  echo "$GITHUB_TOKEN" | gh auth login --with-token
+                            - name: Ensure gh CLI is available
+                                run: |
+                                    if ! command -v gh >/dev/null 2>&1; then
+                                        sudo apt-get update && sudo apt-get install -y gh
+                                    fi
+                                shell: bash
 
             - name: Create GitHub release and upload assets
               env:
