@@ -31,57 +31,21 @@ A desktop application built with Go and Fyne to manage your bash aliases on Linu
 Run the executable:
 
 ```bash
-./bash-alias-manager
-```
+## Quick Install / Uninstall / Run (short) ✅
 
-The GUI will open, showing your current aliases. Select an alias from the list, then use the buttons to add, edit, or delete aliases. Changes are automatically saved to `~/.bash_aliases` after each operation. Click "Reload" to refresh the list from the file if needed.
-
-### Cloud Backup
-
-- **Backup**: Click "Backup" to upload your aliases to a private GitHub Gist. You'll be prompted for a GitHub Personal Access Token on first use (with `gist` scope). The Gist ID is stored locally for future updates.
-- **Restore**: Click "Restore" to download and overwrite your local aliases from the cloud backup.
-
-**Note**: Ensure your GitHub token has the `gist` permission. Create a token at https://github.com/settings/tokens with the "gist" scope selected.
-
-## Notes
-
-- If `~/.bash_aliases` doesn't exist, it will be created when you save.
-- The app ensures that `~/.bashrc` includes a line to source `~/.bash_aliases` if it's not already there.
-- Configuration (token and Gist ID) is stored in `~/.bash_alias_manager.json`.
-
-## Install, Uninstall, and Run (users) ✅
-
-This section explains the recommended ways to install (from GitHub Releases), uninstall, and run the application locally from the repository.
-
-### Install — GitHub Releases (recommended) 🔽
-
-- Install the latest release (installer will detect OS/arch and install to `/usr/local/bin` by default):
+Install (recommended — latest release):
 
 ```bash
-curl -fsSL https://github.com/ahrasel/go-bash-alias-manager/releases/latest/download/install.sh -o install.sh && bash install.sh --desktop
+curl -fsSL https://github.com/ahrasel/go-bash-alias-manager/releases/latest/download/install.sh | bash -s -- --desktop
 ```
 
-- Pipe installer directly (pin to a tag or commit for stability):
+Install to a custom location:
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/ahrasel/go-bash-alias-manager/<tag-or-commit>/install.sh | bash -s -- --desktop --dest ~/.local/bin
+curl -fsSL https://github.com/ahrasel/go-bash-alias-manager/releases/latest/download/install.sh | bash -s -- --desktop --dest ~/.local/bin
 ```
 
-- `wget` equivalent:
-
-```bash
-wget -qO- https://github.com/ahrasel/go-bash-alias-manager/releases/latest/download/install.sh | bash -s -- --desktop
-```
-
-Options:
-- `--dest <path>` — install binary to a custom directory (e.g., `~/.local/bin`).
-- `--desktop` — also install a `.desktop` menu entry and icon for desktop launchers.
-
-Tip: prefer the release download URL above (`/releases/latest/download/install.sh`) or pin a **tag/commit** to avoid transient raw-content cache issues on GitHub.
-
-### Install — From source (developer or maintainers) 🛠️
-
-If you want to build locally from the repository:
+Install from source (dev):
 
 ```bash
 git clone https://github.com/ahrasel/go-bash-alias-manager.git
@@ -91,47 +55,30 @@ go build -o bash-alias-manager ./...
 ./bash-alias-manager
 ```
 
-Or to install into your Go bin:
+Uninstall (remove files):
 
 ```bash
-go install github.com/ahrasel/go-bash-alias-manager@latest
-# then run: $GOBIN/bash-alias-manager or $HOME/go/bin/bash-alias-manager
-```
-
-Notes:
-- Requires Go 1.21+. Building the GUI (Fyne) requires native graphics libraries on Linux (GTK/OpenGL). If `go build` fails with a linker error like `-lXxf86vm` install the corresponding dev package (Debian/Ubuntu: `sudo apt-get install libxxf86vm-dev libcairo2-dev libpango1.0-dev libgtk-3-dev libgl1-mesa-dev`).
-
-### Uninstall — Remove binary, desktop entry & icon 🧹
-
-Run the commands below adapted to how you installed (system vs user):
-
-```bash
-# Remove binary
-rm -f /usr/local/bin/bash-alias-manager          # system install
-rm -f ~/.local/bin/bash-alias-manager            # per-user install
-
-# Remove desktop files and icons
-rm -f ~/.local/share/applications/bash-alias-manager.desktop
-rm -f ~/.local/share/icons/hicolor/128x128/apps/bash-alias-manager.svg
-rm -f ~/.local/share/icons/hicolor/128x128/apps/bash-alias-manager.png || true
-
-# Update icon/desktop caches (if available)
+rm -f /usr/local/bin/bash-alias-manager || true
+rm -f ~/.local/bin/bash-alias-manager || true
+rm -f ~/.local/share/applications/bash-alias-manager.desktop || true
+rm -f ~/.local/share/icons/hicolor/128x128/apps/bash-alias-manager.* || true
 gtk-update-icon-cache -f -t ~/.local/share/icons/hicolor || true
 update-desktop-database ~/.local/share/applications || true
-
-# Remove local configuration (optional)
-rm -f ~/.bash_alias_manager.json
 ```
 
-### Run locally from Git (development) ▶️
-
-To run the app directly from source without installing:
+Verify:
 
 ```bash
-git clone https://github.com/ahrasel/go-bash-alias-manager.git
-cd go-bash-alias-manager
-go mod tidy
-go run ./...
+bash-alias-manager --help
+bash-alias-manager --version
+```
+
+Quick troubleshooting:
+- If `curl` returns 404, pin to a tag: `.../releases/download/v1.1.2/install.sh`.
+- If the installer falls back to text parsing, install `jq` (`sudo apt-get install jq`).
+- For build/linker issues install the GTK/OpenGL dev packages listed above.
+
+If you'd like, I can also add a one-line install badge/link that points to the pinned release asset in the README.
 # or build then run
 go build -o bash-alias-manager ./...
 ./bash-alias-manager
@@ -145,6 +92,7 @@ bash-alias-manager --version
 ```
 
 ### Troubleshooting ⚠️
+
 - If the installer prints "No release asset found for linux/amd64" check that a release with the appropriate artifact exists on the Releases page and try `--version <tag>` or `--url <asset-url>`.
 - The installer uses `jq` for robust JSON parsing. If `jq` is not installed, the installer will fall back to text parsing and will print a note recommending `jq` (install with `sudo apt-get install jq`).
 - If you see linker errors building from source related to missing native libs (Fyne/OpenGL), install the platform dev packages listed above and retry.
