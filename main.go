@@ -5,10 +5,10 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"io/ioutil"
 	"os"
 	"os/exec"
 	"strings"
-	"io/ioutil"
 
 	"github.com/google/go-github/v53/github"
 	"golang.org/x/oauth2"
@@ -306,8 +306,13 @@ func (am *AliasManager) createGistFromContent(content []byte) {
 
 	if am.config.GistID == "" {
 		// Create new
-		g, _, err := client.Gists.Create(ctx, gist)
+		g, resp, err := client.Gists.Create(ctx, gist)
 		if err != nil {
+			// Provide clearer guidance for common permission errors (403/404) which often mean missing 'gist' scope
+			if resp != nil && (resp.StatusCode == 403 || resp.StatusCode == 404) {
+				dialog.ShowError(fmt.Errorf("Failed to create Gist (status %d). Ensure your GitHub token has the 'gist' scope and is valid. Error: %v", resp.StatusCode, err), am.window)
+				return
+			}
 			dialog.ShowError(fmt.Errorf("Failed to create Gist: %v", err), am.window)
 			return
 		}
