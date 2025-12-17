@@ -4,7 +4,7 @@ import (
 	"bufio"
 	"context"
 	"crypto/sha256"
-	"embed"
+	_ "embed"
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
@@ -687,6 +687,11 @@ func (am *AliasManager) saveAndReload() {
 
 func main() {
 	a := app.New()
+	// Set embedded app icon when available
+	if len(iconSVG) > 0 {
+		res := fyne.NewStaticResource("icon.svg", iconSVG)
+		a.SetIcon(res)
+	}
 	w := a.NewWindow("Bash Alias Manager")
 
 	am := &AliasManager{window: w, selectedIndex: -1}
