@@ -95,5 +95,10 @@ There are two supported release workflows:
 
 The build script (`scripts/build_release.sh`) produces cross-compiled binaries and archives for common platforms and a SHA256 checksum file.
 
-> ⚠️ **Platform support:** Because this project uses Fyne (desktop GUI) which depends on system graphics libraries, automated packaging currently produces Linux artifacts (x86_64) built from source on Linux runners. Cross-building macOS/Windows is not supported by the script at present; contributions to add reproducible builds for other platforms are welcome.
+> ⚠️ **Platform support:** Because this project uses Fyne (desktop GUI) which depends on system graphics libraries, automated packaging currently produces Linux artifacts (x86_64) built from source on Linux runners. If `go build` fails locally due to Fyne/OpenGL dependencies, either:
+
+- Build on a supported Linux machine (or CI runner) and push a release tag so the workflow produces artifacts, or
+- Provide a prebuilt binary for the release in `dist/` before creating the GitHub release.
+
+Contributions to make builds reproducible across macOS/Windows are welcome.
 
