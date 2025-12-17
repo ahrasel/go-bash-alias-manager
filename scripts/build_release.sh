@@ -35,13 +35,14 @@ for t in "${TARGETS[@]}"; do
         BINNAME="${NAME}.exe"
     fi
 
-    # If a prebuilt binary exists in 'prime/bin', prefer that (snap build output)
-    if [ -x "${ROOT_DIR}/prime/bin/$NAME" ] && [ "$GOOS" = "linux" ] && [ "$GOARCH" = "amd64" ]; then
-        echo "- Using prebuilt binary from prime/bin"
-        cp "${ROOT_DIR}/prime/bin/$NAME" "$OUTDIR/$BINNAME"
+    # Try building the binary from source
+    echo "- Building binary from source"
+    if env CGO_ENABLED=0 GOOS=$GOOS GOARCH=$GOARCH go build -ldflags "-s -w" -o "$OUTDIR/$BINNAME" ./...; then
+        echo "- Built $OUTDIR/$BINNAME"
     else
-        # Try building; fynes may require CGO and platform-specific deps, so this may fail
-        env CGO_ENABLED=0 GOOS=$GOOS GOARCH=$GOARCH go build -ldflags "-s -w" -o "$OUTDIR/$BINNAME" ./... || true
+        echo "Error: 'go build' failed for $GOOS/$GOARCH. The GUI (Fyne) may require native libraries or CGO;" >&2
+        echo "please build locally for your target platform or provide a prebuilt binary named $BINNAME in the archive." >&2
+        exit 1
     fi
 
     # Copy docs and installer script

@@ -1,6 +1,5 @@
 # Bash Alias Manager
 
-[![Get it from the Snap Store](https://snapcraft.io/en/dark/install.svg)](https://snapcraft.io/bash-alias-manager)
 
 https://github.com/ahrasel/go-bash-alias-manager
 
@@ -96,5 +95,5 @@ There are two supported release workflows:
 
 The build script (`scripts/build_release.sh`) produces cross-compiled binaries and archives for common platforms and a SHA256 checksum file.
 
-> ⚠️ **Platform support:** Because this project uses Fyne (desktop GUI) which depends on system graphics libraries, the automated packaging currently produces Linux artifacts (x86_64) using the prebuilt snap binary. Cross-building macOS/Windows is not supported by the script at present; contributions to add reproducible builds for other platforms are welcome.
+> ⚠️ **Platform support:** Because this project uses Fyne (desktop GUI) which depends on system graphics libraries, automated packaging currently produces Linux artifacts (x86_64) built from source on Linux runners. Cross-building macOS/Windows is not supported by the script at present; contributions to add reproducible builds for other platforms are welcome.
 

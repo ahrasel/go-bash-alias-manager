@@ -27,12 +27,12 @@ go.work
 # Dependency directories (uncomment if using vendoring)
 # vendor/
 
-# Snapcraft build artifacts
-parts/
-stage/
-prime/
-overlay/
-*.snap
+# Snapcraft build artifacts (removed from repo; keep ignored if present locally)
+# parts/
+# stage/
+# prime/
+# overlay/
+# *.snap
 
 # IDE files
 .vscode/
@@ -65,6 +65,12 @@ Thumbs.db
 # Build directories
 build/
 dist/
+
+# Local installer test artifacts
+_install_test*
+
+# local craft metadata
+.craft/
 
 # Go test coverage
 coverage.html
