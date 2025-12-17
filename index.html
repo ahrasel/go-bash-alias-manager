@@ -1,0 +1,158 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Bash Alias Manager Documentation</title>
+  <style>
+    body{font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;margin:0;padding:0;color:#0f172a}
+    header{background:#0ea5a0;color:white;padding:24px}
+    .wrap{max-width:900px;margin:24px auto;padding:0 20px}
+    pre, code{background:#f8fafc;padding:6px;border-radius:6px}
+    a.button{display:inline-block;background:#2563eb;color:white;padding:8px 12px;border-radius:6px;text-decoration:none}
+    footer{margin:40px 0 20px;color:#475569;text-align:center}
+  </style>
+</head>
+<body>
+  <header>
+    <div class="wrap">
+      <h1>Bash Alias Manager</h1>
+      <p>Manage your shell aliases with a simple desktop GUI</p>
+      <p><a class="button" href="https://github.com/ahrasel/go-bash-alias-manager/releases/latest">Download latest</a> <a class="button" href="https://github.com/ahrasel/go-bash-alias-manager">Source</a></p>
+    </div>
+  </header>
+  <main class="wrap">
+    <section class="install-section">
+      <h2>Installation</h2>
+      <p>Install the latest release with desktop integration:</p>
+      <pre><code>sudo curl -fsSL https://github.com/ahrasel/go-bash-alias-manager/releases/latest/download/install.sh | bash -s -- --desktop</code></pre>
+      <p>Or install to a custom location:</p>
+      <pre><code>sudo curl -fsSL https://github.com/ahrasel/go-bash-alias-manager/releases/latest/download/install.sh | bash -s -- --desktop --dest ~/.local/bin</code></pre>
+      <h2>Update</h2>
+      <p>To update to the latest version:</p>
+      <pre><code>sudo curl -fsSL https://github.com/ahrasel/go-bash-alias-manager/releases/latest/download/install.sh | bash -s -- --desktop</code></pre>
+      <h2>Uninstall</h2>
+      <p>To uninstall:</p>
+      <pre><code>sudo rm -f /usr/local/bin/bash-alias-manager || true
+rm -f ~/.local/bin/bash-alias-manager || true
+rm -f ~/.local/share/applications/bash-alias-manager.desktop || true
+rm -f ~/.local/share/icons/hicolor/128x128/apps/bash-alias-manager.* || true
+gtk-update-icon-cache -f -t ~/.local/share/icons/hicolor || true
+update-desktop-database ~/.local/share/applications || true</code></pre>
+      <h2>Usage</h2>
+      <p>Run the application:</p>
+      <pre><code>bash-alias-manager</code></pre>
+    </section>
+    <!-- README content -->
+<h1 dir="auto">Bash Alias Manager</h1>
+<p dir="auto"><a href="https://github.com/ahrasel/go-bash-alias-manager">https://github.com/ahrasel/go-bash-alias-manager</a></p>
+<p dir="auto">A desktop application built with Go and Fyne to manage your bash aliases on Linux.</p>
+<h2 dir="auto">Features</h2>
+<ul dir="auto">
+<li>View all aliases from <code class="notranslate">~/.bash_aliases</code></li>
+<li>Add new aliases (auto-saves and closes dialog)</li>
+<li>Edit existing aliases (auto-saves and closes dialog)</li>
+<li>Delete aliases (auto-saves after confirmation)</li>
+<li>Save changes back to the file (manual save button available)</li>
+<li>Backup aliases to GitHub Gist (cloud backup)</li>
+<li>Restore aliases from GitHub Gist</li>
+<li>Automatically ensures <code class="notranslate">~/.bashrc</code> sources <code class="notranslate">~/.bash_aliases</code></li>
+</ul>
+<h2 dir="auto">Requirements</h2>
+<ul dir="auto">
+<li>Go 1.21 or later</li>
+<li>Linux (designed for Linux desktop)</li>
+</ul>
+<h2 dir="auto">Installation</h2>
+<ol dir="auto">
+<li>Clone or download the project</li>
+<li>Run <code class="notranslate">go mod tidy</code> to download dependencies</li>
+<li>Run <code class="notranslate">go build</code> to build the application</li>
+</ol>
+<h2 dir="auto">Usage</h2>
+<p dir="auto">Run the executable:</p>
+<div class="highlight highlight-source-shell" dir="auto"><pre class="notranslate">./bash-alias-manager</pre></div>
+<h2 dir="auto">Quick Install / Uninstall / Run (short) ✅</h2>
+<p dir="auto">Install (recommended — latest release):</p>
+<div class="highlight highlight-source-shell" dir="auto"><pre class="notranslate">sudo curl -fsSL https://github.com/ahrasel/go-bash-alias-manager/releases/latest/download/install.sh <span class="pl-k">|</span> bash -s -- --desktop</pre></div>
+<p dir="auto">Install to a custom location:</p>
+<div class="highlight highlight-source-shell" dir="auto"><pre class="notranslate">sudo curl -fsSL https://github.com/ahrasel/go-bash-alias-manager/releases/latest/download/install.sh <span class="pl-k">|</span> bash -s -- --desktop --dest <span class="pl-k">~</span>/.local/bin</pre></div>
+<p dir="auto">Install from source (dev):</p>
+<div class="highlight highlight-source-shell" dir="auto"><pre class="notranslate">git clone https://github.com/ahrasel/go-bash-alias-manager.git
+<span class="pl-c1">cd</span> go-bash-alias-manager
+go mod tidy
+go build -o bash-alias-manager ./...
+./bash-alias-manager</pre></div>
+<p dir="auto">Uninstall (remove files):</p>
+<div class="highlight highlight-source-shell" dir="auto"><pre class="notranslate">sudo rm -f /usr/local/bin/bash-alias-manager <span class="pl-k">||</span> <span class="pl-c1">true</span>
+rm -f <span class="pl-k">~</span>/.local/bin/bash-alias-manager <span class="pl-k">||</span> <span class="pl-c1">true</span>
+rm -f <span class="pl-k">~</span>/.local/share/applications/bash-alias-manager.desktop <span class="pl-k">||</span> <span class="pl-c1">true</span>
+rm -f <span class="pl-k">~</span>/.local/share/icons/hicolor/128x128/apps/bash-alias-manager.<span class="pl-k">*</span> <span class="pl-k">||</span> <span class="pl-c1">true</span>
+gtk-update-icon-cache -f -t <span class="pl-k">~</span>/.local/share/icons/hicolor <span class="pl-k">||</span> <span class="pl-c1">true</span>
+update-desktop-database <span class="pl-k">~</span>/.local/share/applications <span class="pl-k">||</span> <span class="pl-c1">true</span></pre></div>
+<p dir="auto">Verify:</p>
+<div class="highlight highlight-source-shell" dir="auto"><pre class="notranslate">bash-alias-manager --help
+bash-alias-manager --version</pre></div>
+<p dir="auto">Update:</p>
+<div class="highlight highlight-source-shell" dir="auto"><pre class="notranslate"><span class="pl-c"><span class="pl-c">#</span> Re-run the installer to update to the latest release</span>
+sudo curl -fsSL https://github.com/ahrasel/go-bash-alias-manager/releases/latest/download/install.sh <span class="pl-k">|</span> bash -s -- --desktop
+
+<span class="pl-c"><span class="pl-c">#</span> Or install a specific version</span>
+sudo curl -fsSL https://github.com/ahrasel/go-bash-alias-manager/releases/download/v1.1.3/install.sh <span class="pl-k">|</span> bash -s -- --desktop</pre></div>
+<p dir="auto">Quick troubleshooting:</p>
+<ul dir="auto">
+<li>If <code class="notranslate">curl</code> returns 404, pin to a tag: <code class="notranslate">.../releases/download/v1.1.2/install.sh</code>.</li>
+<li>If the installer falls back to text parsing, install <code class="notranslate">jq</code> (<code class="notranslate">sudo apt-get install jq</code>).</li>
+<li>For build/linker issues install the GTK/OpenGL dev packages listed above.</li>
+</ul>
+<p dir="auto">If you'd like, I can also add a one-line install badge/link that points to the pinned release asset in the README.</p>
+<h1 dir="auto">or build then run</h1>
+<p dir="auto">go build -o bash-alias-manager ./...<br>
+./bash-alias-manager</p>
+<pre class="notranslate"><code class="notranslate">
+Verify installation:
+
+```bash
+bash-alias-manager --help
+bash-alias-manager --version
+</code></pre>
+<h3 dir="auto">Troubleshooting <g-emoji class="g-emoji" alias="warning">⚠️</g-emoji></h3>
+<ul dir="auto">
+<li>If the installer prints "No release asset found for linux/amd64" check that a release with the appropriate artifact exists on the Releases page and try <code class="notranslate">--version &lt;tag&gt;</code> or <code class="notranslate">--url &lt;asset-url&gt;</code>.</li>
+<li>The installer uses <code class="notranslate">jq</code> for robust JSON parsing. If <code class="notranslate">jq</code> is not installed, the installer will fall back to text parsing and will print a note recommending <code class="notranslate">jq</code> (install with <code class="notranslate">sudo apt-get install jq</code>).</li>
+<li>If you see linker errors building from source related to missing native libs (Fyne/OpenGL), install the platform dev packages listed above and retry.</li>
+</ul>
+<p dir="auto">If you want, I can also add a short one-line install link to the README (a pinned release <code class="notranslate">install.sh</code> asset), so <code class="notranslate">curl | bash</code> always picks the fixed script — tell me if you'd like me to upload <code class="notranslate">install.sh</code> as a release asset for the latest tag.</p>
+<h2 dir="auto">Releasing 🔧</h2>
+<p dir="auto">There are two supported release workflows:</p>
+<ul dir="auto">
+<li>Local: build artifacts and create a GitHub release using the <code class="notranslate">release.sh</code> helper. Example:</li>
+</ul>
+<div class="highlight highlight-source-shell" dir="auto"><pre class="notranslate"><span class="pl-c"><span class="pl-c">#</span> Build artifacts only</span>
+./release.sh package
+
+<span class="pl-c"><span class="pl-c">#</span> Create a GitHub release and upload artifacts using gh (or set GITHUB_TOKEN for API fallback)</span>
+./release.sh gh-release --version v1.2.3
+
+<span class="pl-c"><span class="pl-c">#</span> Build + publish</span>
+./release.sh gh-full --version v1.2.3</pre></div>
+<ul dir="auto">
+<li>Automated: push a tag <code class="notranslate">v1.2.3</code> to the repository and the GitHub Actions workflow will build and publish artifacts automatically.</li>
+</ul>
+<p dir="auto">The build script (<code class="notranslate">scripts/build_release.sh</code>) produces cross-compiled binaries and archives for common platforms and a SHA256 checksum file.</p>
+<blockquote>
+<p dir="auto"><g-emoji class="g-emoji" alias="warning">⚠️</g-emoji> <strong>Platform support:</strong> Because this project uses Fyne (desktop GUI) which depends on system graphics libraries, automated packaging currently produces Linux artifacts (x86_64) built from source on Linux runners. If <code class="notranslate">go build</code> fails locally due to Fyne/OpenGL dependencies, either:</p>
+</blockquote>
+<ul dir="auto">
+<li>Build on a supported Linux machine (or CI runner) and push a release tag so the workflow produces artifacts, or</li>
+<li>Provide a prebuilt binary for the release in <code class="notranslate">dist/</code> before creating the GitHub release.</li>
+</ul>
+<p dir="auto">Note: CI now installs native GTK/OpenGL build dependencies on Ubuntu runners so Linux/Fyne builds should succeed automatically when you push a tag. If you see a linker error like "cannot find -lXxf86vm" or similar, install the missing X11/GL development package locally (on Debian/Ubuntu: <code class="notranslate">sudo apt-get install libxxf86vm-dev</code>) and retry; alternately provide a prebuilt binary in <code class="notranslate">dist/</code> before publishing.</p>
+<p dir="auto">Tip: The installer uses <code class="notranslate">jq</code> for reliable JSON parsing of GitHub release assets. If <code class="notranslate">jq</code> is not installed, the installer will fall back to a slower text-based parse and will print a note recommending <code class="notranslate">jq</code> (install with <code class="notranslate">sudo apt-get install jq</code>).</p>
+<p dir="auto">Contributions to make builds reproducible across macOS/Windows are welcome.</p>
+  </main>
+  <footer>
+    <p>Released on GitHub • <a href="https://github.com/ahrasel/go-bash-alias-manager/releases">Releases</a></p>
+  </footer>
+</body>
+</html>
