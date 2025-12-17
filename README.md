@@ -76,6 +76,16 @@ bash-alias-manager --help
 bash-alias-manager --version
 ```
 
+Update:
+
+```bash
+# Re-run the installer to update to the latest release
+curl -fsSL https://github.com/ahrasel/go-bash-alias-manager/releases/latest/download/install.sh | bash -s -- --desktop
+
+# Or install a specific version
+curl -fsSL https://github.com/ahrasel/go-bash-alias-manager/releases/download/v1.1.3/install.sh | bash -s -- --desktop
+```
+
 Quick troubleshooting:
 
 - If `curl` returns 404, pin to a tag: `.../releases/download/v1.1.2/install.sh`.
@@ -89,14 +99,14 @@ If you'd like, I can also add a one-line install badge/link that points to the p
 go build -o bash-alias-manager ./...
 ./bash-alias-manager
 
-```
+````
 
 Verify installation:
 
 ```bash
 bash-alias-manager --help
 bash-alias-manager --version
-```
+````
 
 ### Troubleshooting ⚠️
 
