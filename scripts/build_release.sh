@@ -11,9 +11,13 @@ DIST_DIR="$ROOT_DIR/dist"
 SRC_DIR="$ROOT_DIR"
 
 # Detect version from git tag, fallback to commit short
-VERSION="$(git describe --tags --always --dirty 2>/dev/null || true)"
-if [ -z "$VERSION" ]; then
-    VERSION="dev"
+if [ -z "${VERSION:-}" ]; then
+    VERSION="$(git describe --tags --always --dirty 2>/dev/null || true)"
+    if [ -z "$VERSION" ]; then
+        VERSION="dev"
+    fi
+else
+    echo "Using provided VERSION=$VERSION"
 fi
 
 echo "Building release artifacts for $NAME version $VERSION"

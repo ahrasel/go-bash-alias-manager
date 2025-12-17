@@ -238,7 +238,16 @@ func (am *AliasManager) refreshList() {
 // showAbout displays an about dialog with version and developer information
 func (am *AliasManager) showAbout() {
 	info := fmt.Sprintf("Bash Alias Manager\nVersion: %s\nDeveloper: ahrasel\nRepository: https://github.com/ahrasel/go-bash-alias-manager", Version)
-	dialog.ShowInformation("About", info, am.window)
+	// Build custom content with an Update button
+	lbl := widget.NewLabel(info)
+	updateBtn := widget.NewButton("Check for updates", func() {
+		am.checkForUpdate()
+	})
+	h := container.NewHBox(updateBtn)
+	content := container.NewVBox(lbl, h)
+	d := dialog.NewCustom("About", "Close", content, am.window)
+	d.Resize(fyne.NewSize(400, 160))
+	d.Show()
 }
 
 // checkForUpdate contacts GitHub Releases, checks latest tag and if newer offers to download and replace the binary.
@@ -279,12 +288,14 @@ func (am *AliasManager) checkForUpdate() {
 		goarch := runtime.GOARCH
 		// map GOARCH names to our asset naming (amd64 -> amd64, arm64 -> arm64)
 		var assetURL string
+		var assetName string
 		for _, a := range assets {
 			m := a.(map[string]interface{})
-			name := m["name"].(string)
+			name, _ := m["name"].(string)
 			if strings.Contains(name, fmt.Sprintf("_%s_%s", goos, goarch)) {
 				if strings.HasSuffix(name, ".tar.gz") || strings.HasSuffix(name, ".zip") {
 					assetURL = m["browser_download_url"].(string)
+					assetName = name
 					break
 				}
 			}
@@ -300,7 +311,8 @@ func (am *AliasManager) checkForUpdate() {
 			return
 		}
 		defer os.RemoveAll(tmpd)
-		assetPath := filepath.Join(tmpd, "asset")
+		// preserve original filename extension to help extraction
+		assetPath := filepath.Join(tmpd, assetName)
 		out, err := os.Create(assetPath)
 		if err != nil {
 			dialog.ShowError(err, am.window)
@@ -322,11 +334,19 @@ func (am *AliasManager) checkForUpdate() {
 		// Extract and locate binary
 		extractDir := filepath.Join(tmpd, "extracted")
 		os.MkdirAll(extractDir, 0755)
-		if strings.HasSuffix(assetPath, ".zip") {
-			dialog.ShowInformation("Update", "Zip-based assets not yet supported for in-place update; please re-run the installer from the release page.", am.window)
-			return
+		if strings.HasSuffix(assetName, ".zip") {
+			// try unzip if available
+			if exec.Command("unzip", "-v").Run() == nil {
+				if err := exec.Command("unzip", "-q", assetPath, "-d", extractDir).Run(); err != nil {
+					dialog.ShowError(fmt.Errorf("Failed to unzip update: %v", err), am.window)
+					return
+				}
+			} else {
+				dialog.ShowInformation("Update", "Zip-based assets are not supported for automatic updates on this system; please re-run the installer from the release page.", am.window)
+				return
+			}
 		} else {
-			// tar.gz
+			// try tar.gz
 			if err := exec.Command("tar", "-xzf", assetPath, "-C", extractDir).Run(); err != nil {
 				dialog.ShowError(fmt.Errorf("Failed to extract update: %v", err), am.window)
 				return
@@ -338,9 +358,12 @@ func (am *AliasManager) checkForUpdate() {
 			if err != nil {
 				return nil
 			}
-			if !d.IsDir() && strings.Contains(d.Name(), "bash-alias-manager") && (d.Type()&0111 != 0) {
-				newBin = p
-				return io.EOF
+			if !d.IsDir() {
+				// Accept file named bash-alias-manager (or with .exe on windows) irrespective of exec bit
+				if d.Name() == "bash-alias-manager" || d.Name() == "bash-alias-manager.exe" || strings.Contains(d.Name(), "bash-alias-manager_") || strings.HasSuffix(d.Name(), "bash-alias-manager") {
+					newBin = p
+					return io.EOF
+				}
 			}
 			return nil
 		})
@@ -759,10 +782,9 @@ func main() {
 	reloadBtn := widget.NewButton("Reload", am.reloadAliases)
 	backupBtn := widget.NewButton("Backup", am.backupToGist)
 	restoreBtn := widget.NewButton("Restore", am.restoreFromGist)
-	updateBtn := widget.NewButton("Update", am.checkForUpdate)
 	aboutBtn := widget.NewButton("About", am.showAbout)
 
-	buttonBox := container.NewHBox(addBtn, editBtn, deleteBtn, reloadBtn, backupBtn, restoreBtn, updateBtn, aboutBtn)
+	buttonBox := container.NewHBox(addBtn, editBtn, deleteBtn, reloadBtn, backupBtn, restoreBtn, aboutBtn)
 
 	w.SetContent(container.NewBorder(
 		nil,

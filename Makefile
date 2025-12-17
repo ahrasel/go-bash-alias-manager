@@ -53,6 +53,6 @@ cut-release:
 		fi \
 	fi
 	@$(MAKE) tag VERSION=$(VERSION) FORCE=$(FORCE)
-	@$(MAKE) build
+	@$(MAKE) build VERSION=$(VERSION)
 	@$(MAKE) release VERSION=$(VERSION)
 	@$(MAKE) upload-install VERSION=$(VERSION)
