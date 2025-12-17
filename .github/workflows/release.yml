@@ -1,70 +1,69 @@
 name: Release
 
 on:
-  push:
-    tags:
-      - 'v*'
+    push:
+        tags:
+            - "v*"
 
 permissions:
-  contents: write
+    contents: write
 
 jobs:
-  build-and-publish:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
+    build-and-publish:
+        runs-on: ubuntu-latest
+        steps:
+            - uses: actions/checkout@v4
 
-      - name: Setup Go
-        uses: actions/setup-go@v4
-        with:
-          go-version: '1.21'
+            - name: Setup Go
+              uses: actions/setup-go@v4
+              with:
+                  go-version: "1.21"
 
-      - name: Install native build dependencies
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y --no-install-recommends \
-            build-essential pkg-config git ca-certificates curl \
-            libgtk-3-dev libgl1-mesa-dev libglu1-mesa-dev \
-            libxxf86vm-dev \
-            libx11-dev libxrandr-dev libxcursor-dev libxinerama-dev \
-            libxss-dev libxtst-dev libasound2-dev libcairo2-dev \
-            libpango1.0-dev libgdk-pixbuf2.0-dev
-        shell: bash
+            - name: Install native build dependencies
+              run: |
+                  sudo apt-get update
+                  sudo apt-get install -y --no-install-recommends \
+                    build-essential pkg-config git ca-certificates curl \
+                    libgtk-3-dev libgl1-mesa-dev libglu1-mesa-dev \
+                    libxxf86vm-dev \
+                    libx11-dev libxrandr-dev libxcursor-dev libxinerama-dev \
+                    libxss-dev libxtst-dev libasound2-dev libcairo2-dev \
+                    libpango1.0-dev libgdk-pixbuf2.0-dev
+              shell: bash
 
-      - name: Build release artifacts
-        env:
-          CGO_ENABLED: '1'
-        run: |
-          chmod +x scripts/build_release.sh
-          ./scripts/build_release.sh
+            - name: Build release artifacts
+              env:
+                  CGO_ENABLED: "1"
+              run: |
+                  chmod +x scripts/build_release.sh
+                  ./scripts/build_release.sh
 
-      - name: Ensure gh CLI is available
-        run: |
-          if ! command -v gh >/dev/null 2>&1; then
-            sudo apt-get update && sudo apt-get install -y gh
-          fi
-        shell: bash
+            - name: Ensure gh CLI is available
+              run: |
+                  if ! command -v gh >/dev/null 2>&1; then
+                    sudo apt-get update && sudo apt-get install -y gh
+                  fi
+              shell: bash
 
-      - name: Create GitHub release and upload assets
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          set -euo pipefail
-          TAG="${{ github.ref_name }}"
-          echo "Preparing release for $TAG"
-          files=(dist/*.{tar.gz,zip} dist/*/*.{tar.gz,zip})
-          assets=()
-          for f in "${files[@]}"; do
-            [ -e "${f}" ] || continue
-            assets+=("${f}")
-          done
+            - name: Create GitHub release and upload assets
+              env:
+                  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+              run: |
+                  set -euo pipefail
+                  TAG="${{ github.ref_name }}"
+                  echo "Preparing release for $TAG"
+                  files=(dist/*.{tar.gz,zip} dist/*/*.{tar.gz,zip})
+                  assets=()
+                  for f in "${files[@]}"; do
+                    [ -e "${f}" ] || continue
+                    assets+=("${f}")
+                  done
 
-          if [ ${#assets[@]} -eq 0 ]; then
-            echo "No assets found in dist/; creating release without assets"
-            gh release create "$TAG" --title "$TAG" --notes "Release $TAG"
-          else
-            echo "Uploading assets: ${assets[*]}"
-            gh release create "$TAG" "${assets[@]}" --title "$TAG" --notes "Release $TAG"
-          fi
-        shell: bash
-
+                  if [ ${#assets[@]} -eq 0 ]; then
+                    echo "No assets found in dist/; creating release without assets"
+                    gh release create "$TAG" --title "$TAG" --notes "Release $TAG"
+                  else
+                    echo "Uploading assets: ${assets[*]}"
+                    gh release create "$TAG" "${assets[@]}" --title "$TAG" --notes "Release $TAG"
+                  fi
+              shell: bash
