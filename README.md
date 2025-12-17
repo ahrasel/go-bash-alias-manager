@@ -50,3 +50,51 @@ The GUI will open, showing your current aliases. Select an alias from the list, 
 - If `~/.bash_aliases` doesn't exist, it will be created when you save.
 - The app ensures that `~/.bashrc` includes a line to source `~/.bash_aliases` if it's not already there.
 - Configuration (token and Gist ID) is stored in `~/.bash_alias_manager.json`.
+
+## Install from GitHub Releases ✅
+
+You can install the prebuilt binary from the GitHub Releases page using `curl` or `wget`:
+
+Install latest release (recommended):
+
+```bash
+curl -fsSL https://github.com/ahrasel/go-bash-alias-manager/raw/main/install.sh | bash
+```
+
+Or pipe the installer from the latest release download (more stable):
+
+```bash
+curl -fsSL https://github.com/ahrasel/go-bash-alias-manager/releases/latest/download/install.sh | bash
+```
+
+The installer will detect your OS/architecture, download the appropriate asset, and install the `bash-alias-manager` binary to `/usr/local/bin` by default (you can pass `--dest` to install to another directory).
+
+Verify the install:
+
+```bash
+bash-alias-manager --help
+```
+
+## Releasing 🔧
+
+There are two supported release workflows:
+
+- Local: build artifacts and create a GitHub release using the `release.sh` helper. Example:
+
+```bash
+# Build artifacts only
+./release.sh package
+
+# Create a GitHub release and upload artifacts using gh (or set GITHUB_TOKEN for API fallback)
+./release.sh gh-release --version v1.2.3
+
+# Build + publish
+./release.sh gh-full --version v1.2.3
+```
+
+- Automated: push a tag `v1.2.3` to the repository and the GitHub Actions workflow will build and publish artifacts automatically.
+
+The build script (`scripts/build_release.sh`) produces cross-compiled binaries and archives for common platforms and a SHA256 checksum file.
+
+> ⚠️ **Platform support:** Because this project uses Fyne (desktop GUI) which depends on system graphics libraries, the automated packaging currently produces Linux artifacts (x86_64) using the prebuilt snap binary. Cross-building macOS/Windows is not supported by the script at present; contributions to add reproducible builds for other platforms are welcome.
+
