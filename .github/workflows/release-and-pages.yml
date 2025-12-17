@@ -1,0 +1,71 @@
+name: Release and Publish Pages
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  release-and-pages:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pages: write
+      id-token: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Go
+        uses: actions/setup-go@v4
+        with:
+          go-version: '1.21'
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get update && sudo apt-get install -y jq tar unzip
+
+      - name: Build Release Artifacts
+        env:
+          VERSION: ${{ github.ref_name }}
+        run: |
+          bash scripts/build_release.sh
+
+      - name: Create GitHub Release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          TAG=${{ github.ref_name }}
+          ART=dist/bash-alias-manager_${TAG}_linux_amd64.tar.gz
+          SUM=dist/bash-alias-manager_${TAG}_SHA256SUMS
+          if [ -f "$ART" ]; then
+            gh release create "$TAG" "$ART" "$SUM" -t "$TAG" -n "Release $TAG" || echo "release exists"
+          else
+            echo "Artifact $ART not found; aborting release creation"; exit 1
+          fi
+
+      - name: Upload install.sh to Release
+        run: |
+          TAG=${{ github.ref_name }}
+          gh release upload "$TAG" install.sh || echo "install.sh upload failed"
+
+      - name: Generate simple release page
+        id: genpage
+        run: |
+          TAG=${{ github.ref_name }}
+          mkdir -p site
+          echo "<html><head><meta charset=\"utf-8\"><title>Bash Alias Manager - $TAG</title></head><body>" > site/index.html
+          echo "<h1>Bash Alias Manager — $TAG</h1>" >> site/index.html
+          gh release view "$TAG" --json tagName,body,assets -q '.assets[] | .name + " " + .browser_download_url' | while read -r line; do
+            name=$(echo "$line" | awk '{print $1}')
+            url=$(echo "$line" | awk '{print $2}')
+            echo "<p><a href=\"$url\">$name</a></p>" >> site/index.html
+          done
+          gh release view "$TAG" --json body -q '.body' | sed 's/$/<br>/' >> site/index.html || true
+          echo "</body></html>" >> site/index.html
+
+      - name: Deploy to GitHub Pages
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./site
