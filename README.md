@@ -99,6 +99,6 @@ The build script (`scripts/build_release.sh`) produces cross-compiled binaries a
 - Build on a supported Linux machine (or CI runner) and push a release tag so the workflow produces artifacts, or
 - Provide a prebuilt binary for the release in `dist/` before creating the GitHub release.
 
-Note: CI now installs native GTK/OpenGL build dependencies on Ubuntu runners so Linux/Fyne builds should succeed automatically when you push a tag. If you still encounter build errors, run the build locally and inspect missing packages or provide a prebuilt binary in `dist/` before publishing.
+Note: CI now installs native GTK/OpenGL build dependencies on Ubuntu runners so Linux/Fyne builds should succeed automatically when you push a tag. If you see a linker error like "cannot find -lXxf86vm" or similar, install the missing X11/GL development package locally (on Debian/Ubuntu: `sudo apt-get install libxxf86vm-dev`) and retry; alternately provide a prebuilt binary in `dist/` before publishing.
 
 Contributions to make builds reproducible across macOS/Windows are welcome.
