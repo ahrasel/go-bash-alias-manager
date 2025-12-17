@@ -37,7 +37,14 @@ for t in "${TARGETS[@]}"; do
 
     # Try building the binary from source
     echo "- Building binary from source"
-    if env CGO_ENABLED=0 GOOS=$GOOS GOARCH=$GOARCH go build -ldflags "-s -w" -o "$OUTDIR/$BINNAME" ./...; then
+    # Enable CGO on Linux to allow Fyne/OpenGL bindings to build
+    if [ "$GOOS" = "linux" ]; then
+        CGO=1
+    else
+        CGO=0
+    fi
+
+    if env CGO_ENABLED=$CGO GOOS=$GOOS GOARCH=$GOARCH go build -ldflags "-s -w" -o "$OUTDIR/$BINNAME" ./...; then
         echo "- Built $OUTDIR/$BINNAME"
     else
         echo "Error: 'go build' failed for $GOOS/$GOARCH. The GUI (Fyne) may require native libraries or CGO;" >&2
