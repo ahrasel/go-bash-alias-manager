@@ -39,13 +39,13 @@ Run the executable:
 Install (recommended — latest release):
 
 ```bash
-curl -fsSL https://github.com/ahrasel/go-bash-alias-manager/releases/latest/download/install.sh | bash -s -- --desktop
+sudo curl -fsSL https://github.com/ahrasel/go-bash-alias-manager/releases/latest/download/install.sh | bash -s -- --desktop
 ```
 
 Install to a custom location:
 
 ```bash
-curl -fsSL https://github.com/ahrasel/go-bash-alias-manager/releases/latest/download/install.sh | bash -s -- --desktop --dest ~/.local/bin
+sudo curl -fsSL https://github.com/ahrasel/go-bash-alias-manager/releases/latest/download/install.sh | bash -s -- --desktop --dest ~/.local/bin
 ```
 
 Install from source (dev):
@@ -61,7 +61,7 @@ go build -o bash-alias-manager ./...
 Uninstall (remove files):
 
 ```bash
-rm -f /usr/local/bin/bash-alias-manager || true
+sudo rm -f /usr/local/bin/bash-alias-manager || true
 rm -f ~/.local/bin/bash-alias-manager || true
 rm -f ~/.local/share/applications/bash-alias-manager.desktop || true
 rm -f ~/.local/share/icons/hicolor/128x128/apps/bash-alias-manager.* || true
@@ -80,10 +80,10 @@ Update:
 
 ```bash
 # Re-run the installer to update to the latest release
-curl -fsSL https://github.com/ahrasel/go-bash-alias-manager/releases/latest/download/install.sh | bash -s -- --desktop
+sudo curl -fsSL https://github.com/ahrasel/go-bash-alias-manager/releases/latest/download/install.sh | bash -s -- --desktop
 
 # Or install a specific version
-curl -fsSL https://github.com/ahrasel/go-bash-alias-manager/releases/download/v1.1.3/install.sh | bash -s -- --desktop
+sudo curl -fsSL https://github.com/ahrasel/go-bash-alias-manager/releases/download/v1.1.3/install.sh | bash -s -- --desktop
 ```
 
 Quick troubleshooting:
