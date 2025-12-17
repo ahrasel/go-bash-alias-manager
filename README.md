@@ -67,6 +67,50 @@ curl -fsSL https://github.com/ahrasel/go-bash-alias-manager/releases/latest/down
 
 The installer will detect your OS/architecture, download the appropriate asset, and install the `bash-alias-manager` binary to `/usr/local/bin` by default (you can pass `--dest` to install to another directory).
 
+If you want the installer to also install a desktop menu entry and icon (so the app appears in your desktop launcher), pass the `--desktop` flag. Example (install latest release and add desktop entry):
+
+```bash
+curl -fsSL https://github.com/ahrasel/go-bash-alias-manager/raw/main/install.sh | bash -s -- --desktop --dest ~/.local/bin
+```
+
+Or using a specific release tag (more stable):
+
+```bash
+curl -fsSL https://github.com/ahrasel/go-bash-alias-manager/raw/main/install.sh | bash -s -- --version v1.1.1 --desktop
+```
+
+If you prefer wget:
+
+```bash
+wget -qO- https://github.com/ahrasel/go-bash-alias-manager/raw/main/install.sh | bash -s -- --desktop
+```
+
+Troubleshooting
+
+- "No release asset found for linux/amd64": the installer couldn't find a matching release asset. Confirm a release exists with an asset for your platform at https://github.com/ahrasel/go-bash-alias-manager/releases. You can also pass `--version <tag>` or `--url <asset-url>` to point to a specific release or asset.
+- If the installer falls back to text parsing it prints a note recommending `jq` — install it for more reliable behavior: `sudo apt-get install jq`.
+- If the `.desktop` entry doesn't appear in your application launcher immediately, check that the file was installed to `~/.local/share/applications/` (per-user) or `/usr/share/applications/` (system-wide). You can refresh the desktop database with `update-desktop-database ~/.local/share/applications` (if available) or log out/in.
+
+Manual desktop install
+
+- Copy the desktop file and icon manually if needed:
+
+```bash
+mkdir -p ~/.local/share/applications ~/.local/share/icons/hicolor/128x128/apps
+cp desktop/bash-alias-manager.desktop ~/.local/share/applications/
+sed -i "s|Exec=bash-alias-manager|Exec=$(which bash-alias-manager)|" ~/.local/share/applications/bash-alias-manager.desktop
+cp assets/icon.svg ~/.local/share/icons/hicolor/128x128/apps/bash-alias-manager.svg
+gtk-update-icon-cache -f -t ~/.local/share/icons/hicolor || true
+update-desktop-database ~/.local/share/applications || true
+```
+
+If you still have issues, run the installer script with debug output to see what is failing:
+
+```bash
+curl -fsSL https://github.com/ahrasel/go-bash-alias-manager/raw/main/install.sh -o install.sh
+bash -x install.sh --version v1.1.1 --desktop --dest ~/.local/bin
+```
+
 Verify the install:
 
 ```bash
