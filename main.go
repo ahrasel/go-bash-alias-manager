@@ -675,15 +675,7 @@ func (am *AliasManager) reloadAliases() {
 	am.refreshList()
 }
 
-func (am *AliasManager) saveAndReload() {
-	err := am.saveAliases()
-	if err != nil {
-		dialog.ShowError(err, am.window)
-		return
-	}
-	// Reload shell or something? For now, just save
-	exec.Command("bash", "-c", "source ~/.bashrc").Run() // optional
-}
+// saveAndReload removed: saving occurs immediately when aliases are added/edited/deleted
 
 func main() {
 	a := app.New()
@@ -763,14 +755,14 @@ func main() {
 			am.deleteAlias(am.selectedIndex)
 		}
 	})
-	saveBtn := widget.NewButton("Save", am.saveAndReload)
+	// Save button removed (save happens automatically when editing/adding/removing aliases)
 	reloadBtn := widget.NewButton("Reload", am.reloadAliases)
 	backupBtn := widget.NewButton("Backup", am.backupToGist)
 	restoreBtn := widget.NewButton("Restore", am.restoreFromGist)
 	updateBtn := widget.NewButton("Update", am.checkForUpdate)
 	aboutBtn := widget.NewButton("About", am.showAbout)
 
-	buttonBox := container.NewHBox(addBtn, editBtn, deleteBtn, saveBtn, reloadBtn, backupBtn, restoreBtn, updateBtn, aboutBtn)
+	buttonBox := container.NewHBox(addBtn, editBtn, deleteBtn, reloadBtn, backupBtn, restoreBtn, updateBtn, aboutBtn)
 
 	w.SetContent(container.NewBorder(
 		nil,
