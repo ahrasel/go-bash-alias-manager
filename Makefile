@@ -30,10 +30,12 @@ tag:
 	@git tag -a $(VERSION) -m "Release $(VERSION)"
 	@git push origin $(VERSION)
 
-release: build tag
+release:
 	@if [ -z "$(VERSION)" ]; then echo "ERROR: VERSION is required. Example: make release VERSION=v1.2.3"; exit 1; fi
+	@ART=dist/bash-alias-manager_$(VERSION)_linux_amd64.tar.gz
+	@if [ ! -f "$$ART" ]; then echo "ERROR: artifact $$ART not found. Run 'make build' or use 'make cut-release'"; exit 1; fi
 	@echo "Creating GitHub release $(VERSION)..."
-	@gh release create $(VERSION) dist/bash-alias-manager_$(VERSION)_linux_amd64.tar.gz dist/bash-alias-manager_$(VERSION)_SHA256SUMS -t "$(VERSION)" -n "Release $(VERSION)" || echo "gh release create failed or release already exists"
+	@gh release create $(VERSION) $$ART dist/bash-alias-manager_$(VERSION)_SHA256SUMS -t "$(VERSION)" -n "Release $(VERSION)" || echo "gh release create failed or release already exists"
 
 upload-install:
 	@if [ -z "$(VERSION)" ]; then echo "ERROR: VERSION is required. Example: make upload-install VERSION=v1.2.3"; exit 1; fi
