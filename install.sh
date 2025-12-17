@@ -82,10 +82,20 @@ fi
 ASSET_NAME_PATTERNS=("${NAME}_*_${GOOS}_${GOARCH}.tar.gz" "${NAME}_*_${GOOS}_${GOARCH}.zip")
 
 if [ -z "$ASSET_URL" ]; then
-    # Only try to discover an asset from the release JSON if the caller didn't supply a --url
-    if [ -z "${ASSET_URL:-}" ]; then
+    # Prefer jq if available for robust JSON parsing
+    if command -v jq >/dev/null 2>&1; then
         for pat in "${ASSET_NAME_PATTERNS[@]}"; do
-            ASSET_URL=$(echo "$RELEASE_JSON" | grep -Eo '"browser_download_url":\s*"[^"]+"' | cut -d '"' -f4 | grep -E "${pat}" || true)
+            # Convert glob to a regex: replace '*' with '.*'
+            regex="$(printf '%s' "$pat" | sed 's/\./\\./g; s/\*/.*/g')"
+            ASSET_URL=$(echo "$RELEASE_JSON" | jq -r --arg re "$regex" '.assets[] | select(.name | test($re)) | .browser_download_url' | head -n1 || true)
+            if [ -n "$ASSET_URL" ] && [ "$ASSET_URL" != "null" ]; then break; fi
+        done
+    else
+        echo "Note: 'jq' not found — falling back to slower text parsing. For more reliable results install 'jq' (eg. 'sudo apt-get install jq')."
+        for pat in "${ASSET_NAME_PATTERNS[@]}"; do
+            # Convert glob to regex (escape dots, expand * to .*)
+            regex="$(printf '%s' "$pat" | sed 's/\./\\./g; s/\*/.*/g')"
+            ASSET_URL=$(echo "$RELEASE_JSON" | grep -Eo '"browser_download_url":\s*"[^"]+"' | cut -d '"' -f4 | grep -E "$regex" || true)
             if [ -n "$ASSET_URL" ]; then break; fi
         done
     fi
