@@ -12,7 +12,7 @@ usage() {
 Usage: $0 [--repo owner/repo] [--version X.Y.Z] [--dest /path]
 
 Examples:
-  curl -fsSL https://github.com/ahrasel/go-bash-alias-manager/raw/main/install.sh | bash
+    curl -fsSL https://github.com/ahrasel/go-bash-alias-manager/raw/main/install.sh | bash
   bash install.sh --version v1.2.3 --dest ~/.local/bin
 EOF
 }
@@ -28,6 +28,12 @@ while [[ $# -gt 0 ]]; do
             VERSION="$2"; shift 2;;
         --dest)
             DEST="$2"; shift 2;;
+        --desktop)
+            INSTALL_DESKTOP=true; shift;;
+        --desktop-dir)
+            DESKTOP_DIR="$2"; shift 2;;
+        --icons-dir)
+            ICONS_DIR="$2"; shift 2;;
         -h|--help)
             usage; exit 0;;
         *)
@@ -140,5 +146,49 @@ fi
 
 echo "Installed $NAME to $DEST_BIN"
 echo "Run '$DEST_BIN --help' to verify"
+
+if [ "${INSTALL_DESKTOP:-false}" = true ]; then
+    # Default per-user locations
+    DESKTOP_DIR="${DESKTOP_DIR:-$HOME/.local/share/applications}"
+    ICONS_DIR="${ICONS_DIR:-$HOME/.local/share/icons/hicolor/128x128/apps}"
+
+    # Locate desktop template and icon in the repo (prefer desktop/ then snap/gui/)
+    SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+    DESKTOP_SRC="${DESKTOP_SRC:-$SCRIPT_DIR/desktop/bash-alias-manager.desktop}"
+    ICON_SRC="${ICON_SRC:-$SCRIPT_DIR/assets/icon.svg}"
+
+    echo "Installing desktop entry to $DESKTOP_DIR and icon to $ICONS_DIR"
+    mkdir -p "$DESKTOP_DIR" "$ICONS_DIR"
+
+    # Prepare desktop file with full Exec path
+    DESKTOP_TARGET="$DESKTOP_DIR/bash-alias-manager.desktop"
+    awk -v execpath="$DEST_BIN" 'BEGIN{FS=OFS="="} /^Exec=/{$2=execpath} {print}' "$DESKTOP_SRC" > "$DESKTOP_TARGET"
+    # Ensure Icon line exists and points to our icon name
+    if ! grep -q "^Icon=" "$DESKTOP_TARGET"; then
+        echo "Icon=bash-alias-manager" >> "$DESKTOP_TARGET"
+    else
+        sed -i "s/^Icon=.*/Icon=bash-alias-manager/" "$DESKTOP_TARGET"
+    fi
+
+    # Copy icon (svg preferred) to icons dir
+    ICON_TARGET="$ICONS_DIR/bash-alias-manager.svg"
+    cp "$ICON_SRC" "$ICON_TARGET"
+
+    # If ImageMagick's convert is available, produce a PNG as well
+    if command -v convert >/dev/null 2>&1; then
+        PNG_TARGET="$ICONS_DIR/bash-alias-manager.png"
+        convert -background none "$ICON_SRC" -resize 128x128 "$PNG_TARGET" || true
+    fi
+
+    # Update caches if available
+    if command -v update-desktop-database >/dev/null 2>&1; then
+        update-desktop-database "$DESKTOP_DIR" || true
+    fi
+    if command -v gtk-update-icon-cache >/dev/null 2>&1; then
+        gtk-update-icon-cache -f -t "$(dirname "$ICONS_DIR")" || true
+    fi
+
+    echo "Desktop menu entry installed: $DESKTOP_TARGET"
+fi
 
 exit 0

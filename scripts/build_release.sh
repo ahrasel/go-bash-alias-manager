@@ -50,6 +50,14 @@ for t in "${TARGETS[@]}"; do
     if [ -f install.sh ]; then
         cp install.sh "$OUTDIR/"
     fi
+    # Copy desktop entry and icon if present
+    if [ -f desktop/bash-alias-manager.desktop ]; then
+        cp desktop/bash-alias-manager.desktop "$OUTDIR/"
+    fi
+    if [ -f assets/icon.svg ]; then
+        mkdir -p "$OUTDIR/icons"
+        cp assets/icon.svg "$OUTDIR/icons/"
+    fi
 
     # Archive
     pushd "$DIST_DIR" >/dev/null

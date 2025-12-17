@@ -1,0 +1,8 @@
+[Desktop Entry]
+Name=Bash Alias Manager
+Comment=Manage your bash aliases
+Exec=bash-alias-manager
+Icon=bash-alias-manager
+Terminal=false
+Type=Application
+Categories=Utility;
