@@ -31,13 +31,81 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+      - name: Setup Go
+        uses: actions/setup-go@v4
+        with:
+          go-version: '1.21'
+      - name: Install dependencies
+        run: |
+          sudo apt-get update && sudo apt-get install -y jq tar unzip gh
+      - name: Generate documentation page
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          mkdir -p docs
+          REPO="${{ github.repository }}"
+          README_HTML=$(gh api -X POST /markdown -f text="$(cat README.md)" -f mode='gfm' -f context="$REPO")
+          cat > docs/index.html <<EOF
+          <!doctype html>
+          <html lang="en">
+          <head>
+            <meta charset="utf-8">
+            <meta name="viewport" content="width=device-width,initial-scale=1">
+            <title>Bash Alias Manager Documentation</title>
+            <style>
+              body{font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;margin:0;padding:0;color:#0f172a}
+              header{background:#0ea5a0;color:white;padding:24px}
+              .wrap{max-width:900px;margin:24px auto;padding:0 20px}
+              pre, code{background:#f8fafc;padding:6px;border-radius:6px}
+              a.button{display:inline-block;background:#2563eb;color:white;padding:8px 12px;border-radius:6px;text-decoration:none}
+              footer{margin:40px 0 20px;color:#475569;text-align:center}
+            </style>
+          </head>
+          <body>
+            <header>
+              <div class="wrap">
+                <h1>Bash Alias Manager</h1>
+                <p>Manage your shell aliases with a simple desktop GUI</p>
+                <p><a class="button" href="https://github.com/$REPO/releases/latest">Download latest</a> <a class="button" href="https://github.com/$REPO">Source</a></p>
+              </div>
+            </header>
+            <main class="wrap">
+              <section class="install-section">
+                <h2>Installation</h2>
+                <p>Install the latest release with desktop integration:</p>
+                <pre><code>sudo curl -fsSL https://github.com/$REPO/releases/latest/download/install.sh | bash -s -- --desktop</code></pre>
+                <p>Or install to a custom location:</p>
+                <pre><code>sudo curl -fsSL https://github.com/$REPO/releases/latest/download/install.sh | bash -s -- --desktop --dest ~/.local/bin</code></pre>
+                <h2>Update</h2>
+                <p>To update to the latest version:</p>
+                <pre><code>sudo curl -fsSL https://github.com/$REPO/releases/latest/download/install.sh | bash -s -- --desktop</code></pre>
+                <h2>Uninstall</h2>
+                <p>To uninstall:</p>
+                <pre><code>sudo rm -f /usr/local/bin/bash-alias-manager || true
+          rm -f ~/.local/bin/bash-alias-manager || true
+          rm -f ~/.local/share/applications/bash-alias-manager.desktop || true
+          rm -f ~/.local/share/icons/hicolor/128x128/apps/bash-alias-manager.* || true
+          gtk-update-icon-cache -f -t ~/.local/share/icons/hicolor || true
+          update-desktop-database ~/.local/share/applications || true</code></pre>
+                <h2>Usage</h2>
+                <p>Run the application:</p>
+                <pre><code>bash-alias-manager</code></pre>
+              </section>
+              <!-- README content -->
+          EOF
+          echo "$README_HTML" >> docs/index.html
+          cat >> docs/index.html <<EOF
+            </main>
+            <footer>
+              <p>Released on GitHub • <a href="https://github.com/$REPO/releases">Releases</a></p>
+            </footer>
+          </body>
+          </html>
+          EOF
       - name: Setup Pages
         uses: actions/configure-pages@v5
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          # Upload entire repository
-          path: '.'
-      - name: Deploy to GitHub Pages
-        id: deployment
-        uses: actions/deploy-pages@v4
+          # Upload docs folder
+          path: 'docs'
