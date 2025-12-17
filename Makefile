@@ -40,6 +40,18 @@ upload-install:
 	@echo "Uploading install.sh to release $(VERSION)..."
 	@gh release upload $(VERSION) install.sh || echo "upload failed"
 
-cut-release: build tag
+cut-release:
+	@if [ -z "$(VERSION)" ]; then echo "ERROR: VERSION is required. Example: make cut-release VERSION=v1.2.3"; exit 1; fi
+	@# Check for existing tag before doing heavy work
+	@if git rev-parse -q --verify refs/tags/$(VERSION) >/dev/null; then \
+		if [ "$(FORCE)" = "true" ]; then \
+			echo "Tag $(VERSION) exists; deleting and recreating (force)"; \
+			git tag -d $(VERSION) || true; git push --delete origin $(VERSION) || true; \
+		else \
+			echo "ERROR: tag '$(VERSION)' already exists. To replace it, run 'make cut-release VERSION=$(VERSION) FORCE=true'"; exit 1; \
+		fi \
+	fi
+	@$(MAKE) build
+	@$(MAKE) tag VERSION=$(VERSION) FORCE=$(FORCE)
 	@$(MAKE) release VERSION=$(VERSION)
 	@$(MAKE) upload-install VERSION=$(VERSION)
