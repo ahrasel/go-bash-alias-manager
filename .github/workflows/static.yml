@@ -11,7 +11,7 @@ on:
 
 # Sets permissions of the GITHUB_TOKEN to allow deployment to GitHub Pages
 permissions:
-  contents: read
+  contents: write
   pages: write
   id-token: write
 
@@ -24,9 +24,6 @@ concurrency:
 jobs:
   # Single deploy job since we're just deploying
   deploy:
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -42,10 +39,10 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          mkdir -p docs
+          mkdir -p site
           REPO="${{ github.repository }}"
           README_HTML=$(gh api -X POST /markdown -f text="$(cat README.md)" -f mode='gfm' -f context="$REPO")
-          cat > docs/index.html <<EOF
+          cat > site/index.html <<EOF
           <!doctype html>
           <html lang="en">
           <head>
@@ -93,8 +90,8 @@ jobs:
               </section>
               <!-- README content -->
           EOF
-          echo "$README_HTML" >> docs/index.html
-          cat >> docs/index.html <<EOF
+          echo "$README_HTML" >> site/index.html
+          cat >> site/index.html <<EOF
             </main>
             <footer>
               <p>Released on GitHub • <a href="https://github.com/$REPO/releases">Releases</a></p>
@@ -102,11 +99,9 @@ jobs:
           </body>
           </html>
           EOF
-          touch docs/.nojekyll
-      - name: Setup Pages
-        uses: actions/configure-pages@v5
-      - name: Upload artifact
-        uses: actions/upload-pages-artifact@v3
+          touch site/.nojekyll
+      - name: Deploy to GitHub Pages
+        uses: peaceiris/actions-gh-pages@v4
         with:
-          # Upload docs folder
-          path: 'docs'
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./site
