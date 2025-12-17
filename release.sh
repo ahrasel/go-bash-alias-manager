@@ -74,6 +74,11 @@ gh_create_release() {
     VERSION_TAG="$1"
     DIST_DIR="$PROJECT_DIR/dist"
 
+    if [ ! -d "$DIST_DIR" ] || [ -z "$(ls -A $DIST_DIR 2>/dev/null)" ]; then
+        log_error "No artifacts found in $DIST_DIR. Run './release.sh package' first or use 'gh-full' to build and publish in one step."
+        exit 1
+    fi
+
     if command -v gh >/dev/null 2>&1; then
         log_info "Creating GitHub release (gh) $VERSION_TAG"
         gh release create "$VERSION_TAG" "$DIST_DIR"/*.{tar.gz,zip} --title "$VERSION_TAG" --notes "Release $VERSION_TAG" || true
