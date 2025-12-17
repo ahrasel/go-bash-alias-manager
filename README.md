@@ -30,14 +30,14 @@ A desktop application built with Go and Fyne to manage your bash aliases on Linu
 
 Run the executable:
 
-```bash
+````bash
 ## Quick Install / Uninstall / Run (short) ✅
 
 Install (recommended — latest release):
 
 ```bash
 curl -fsSL https://github.com/ahrasel/go-bash-alias-manager/releases/latest/download/install.sh | bash -s -- --desktop
-```
+````
 
 Install to a custom location:
 
@@ -74,22 +74,26 @@ bash-alias-manager --version
 ```
 
 Quick troubleshooting:
+
 - If `curl` returns 404, pin to a tag: `.../releases/download/v1.1.2/install.sh`.
 - If the installer falls back to text parsing, install `jq` (`sudo apt-get install jq`).
 - For build/linker issues install the GTK/OpenGL dev packages listed above.
 
 If you'd like, I can also add a one-line install badge/link that points to the pinned release asset in the README.
+
 # or build then run
+
 go build -o bash-alias-manager ./...
 ./bash-alias-manager
-```
+
+````
 
 Verify installation:
 
 ```bash
 bash-alias-manager --help
 bash-alias-manager --version
-```
+````
 
 ### Troubleshooting ⚠️
 
