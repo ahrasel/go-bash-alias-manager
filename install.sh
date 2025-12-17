@@ -162,17 +162,47 @@ if [ "${INSTALL_DESKTOP:-false}" = true ]; then
     DESKTOP_DIR="${DESKTOP_DIR:-$HOME/.local/share/applications}"
     ICONS_DIR="${ICONS_DIR:-$HOME/.local/share/icons/hicolor/128x128/apps}"
 
-    # Locate desktop template and icon in the repo (prefer desktop/ then snap/gui/)
-    SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-    DESKTOP_SRC="${DESKTOP_SRC:-$SCRIPT_DIR/desktop/bash-alias-manager.desktop}"
-    ICON_SRC="${ICON_SRC:-$SCRIPT_DIR/assets/icon.svg}"
+    # Locate desktop template and icon. If the script was piped via stdin, ${BASH_SOURCE[0]} may be unset;
+    # in that case prefer raw files from the repository's main branch.
+    bs="${BASH_SOURCE[0]:-}"
+    RAW_DESKTOP_URL="https://raw.githubusercontent.com/ahrasel/go-bash-alias-manager/main/desktop/bash-alias-manager.desktop"
+    RAW_ICON_URL="https://raw.githubusercontent.com/ahrasel/go-bash-alias-manager/main/assets/icon.svg"
+
+    if [ -n "$bs" ]; then
+        SCRIPT_DIR="$(cd "$(dirname "$bs")" && pwd)"
+        local_desktop="$SCRIPT_DIR/desktop/bash-alias-manager.desktop"
+        local_icon="$SCRIPT_DIR/assets/icon.svg"
+        if [ -f "$local_desktop" ]; then
+            FINAL_DESKTOP="$local_desktop"
+        else
+            FINAL_DESKTOP="$RAW_DESKTOP_URL"
+        fi
+        if [ -f "$local_icon" ]; then
+            FINAL_ICON="$local_icon"
+        else
+            FINAL_ICON="$RAW_ICON_URL"
+        fi
+    else
+        # Running from stdin; use raw URLs
+        FINAL_DESKTOP="$RAW_DESKTOP_URL"
+        FINAL_ICON="$RAW_ICON_URL"
+    fi
 
     echo "Installing desktop entry to $DESKTOP_DIR and icon to $ICONS_DIR"
     mkdir -p "$DESKTOP_DIR" "$ICONS_DIR"
 
     # Prepare desktop file with full Exec path
     DESKTOP_TARGET="$DESKTOP_DIR/bash-alias-manager.desktop"
-    awk -v execpath="$DEST_BIN" 'BEGIN{FS=OFS="="} /^Exec=/{$2=execpath} {print}' "$DESKTOP_SRC" > "$DESKTOP_TARGET"
+    # If DESKTOP_SRC is a URL, download it to a temp file first
+    if printf '%s' "$FINAL_DESKTOP" | grep -qE '^https?://'; then
+        tmpd=$(mktemp -d)
+        trap 'rm -rf "$tmpd"' EXIT
+        curl -fsSL "$FINAL_DESKTOP" -o "$tmpd/bash-alias-manager.desktop"
+        awk -v execpath="$DEST_BIN" 'BEGIN{FS=OFS="="} /^Exec=/{$2=execpath} {print}' "$tmpd/bash-alias-manager.desktop" > "$DESKTOP_TARGET"
+        rm -rf "$tmpd"
+    else
+        awk -v execpath="$DEST_BIN" 'BEGIN{FS=OFS="="} /^Exec=/{$2=execpath} {print}' "$FINAL_DESKTOP" > "$DESKTOP_TARGET"
+    fi
     # Ensure Icon line exists and points to our icon name
     if ! grep -q "^Icon=" "$DESKTOP_TARGET"; then
         echo "Icon=bash-alias-manager" >> "$DESKTOP_TARGET"
@@ -182,7 +212,11 @@ if [ "${INSTALL_DESKTOP:-false}" = true ]; then
 
     # Copy icon (svg preferred) to icons dir
     ICON_TARGET="$ICONS_DIR/bash-alias-manager.svg"
-    cp "$ICON_SRC" "$ICON_TARGET"
+    if printf '%s' "$FINAL_ICON" | grep -qE '^https?://'; then
+        curl -fsSL "$FINAL_ICON" -o "$ICON_TARGET"
+    else
+        cp "$FINAL_ICON" "$ICON_TARGET"
+    fi
 
     # If ImageMagick's convert is available, produce a PNG as well
     if command -v convert >/dev/null 2>&1; then

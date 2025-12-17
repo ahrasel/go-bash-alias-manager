@@ -68,6 +68,8 @@ dist/
 
 # Local installer test artifacts
 _install_test*
+_install_debug*
+_install_from*
 
 # local craft metadata
 .craft/
