@@ -91,6 +91,12 @@ Troubleshooting
 - If the installer falls back to text parsing it prints a note recommending `jq` — install it for more reliable behavior: `sudo apt-get install jq`.
 - If the `.desktop` entry doesn't appear in your application launcher immediately, check that the file was installed to `~/.local/share/applications/` (per-user) or `/usr/share/applications/` (system-wide). You can refresh the desktop database with `update-desktop-database ~/.local/share/applications` (if available) or log out/in.
 
+Tip: If you run the installer piped from GitHub (curl | bash) and the script behaves unexpectedly, GitHub's raw content can be cached for a short time. To avoid caching issues, either specify a release with `--version v1.1.2` or fetch the installer at a specific commit:
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/ahrasel/go-bash-alias-manager/<commit>/install.sh | bash -s -- --desktop
+```
+
 Manual desktop install
 
 - Copy the desktop file and icon manually if needed:
