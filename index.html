@@ -46,7 +46,7 @@ update-desktop-database ~/.local/share/applications || true</code></pre>
     <!-- README content -->
 <h1 dir="auto">Bash Alias Manager</h1>
 <p dir="auto"><a href="https://github.com/ahrasel/go-bash-alias-manager">https://github.com/ahrasel/go-bash-alias-manager</a></p>
-<p dir="auto">A desktop application built with Go and Fyne to manage your bash aliases on Linux.</p>
+<p dir="auto">A desktop application built with Go and Fyne to manage your bash aliases on Linux and macOS.</p>
 <h2 dir="auto">Features</h2>
 <ul dir="auto">
 <li>View all aliases from <code class="notranslate">~/.bash_aliases</code></li>
@@ -61,7 +61,7 @@ update-desktop-database ~/.local/share/applications || true</code></pre>
 <h2 dir="auto">Requirements</h2>
 <ul dir="auto">
 <li>Go 1.21 or later</li>
-<li>Linux (designed for Linux desktop)</li>
+<li>Linux or macOS</li>
 </ul>
 <h2 dir="auto">Installation</h2>
 <ol dir="auto">
@@ -74,9 +74,11 @@ update-desktop-database ~/.local/share/applications || true</code></pre>
 <div class="highlight highlight-source-shell" dir="auto"><pre class="notranslate">./bash-alias-manager</pre></div>
 <h2 dir="auto">Quick Install / Uninstall / Run (short) ✅</h2>
 <p dir="auto">Install (recommended — latest release):</p>
-<div class="highlight highlight-source-shell" dir="auto"><pre class="notranslate">sudo curl -fsSL https://github.com/ahrasel/go-bash-alias-manager/releases/latest/download/install.sh <span class="pl-k">|</span> bash -s -- --desktop</pre></div>
+<div class="highlight highlight-source-shell" dir="auto"><pre class="notranslate">curl -fsSL https://github.com/ahrasel/go-bash-alias-manager/releases/latest/download/install.sh <span class="pl-k">|</span> bash -s -- --desktop  <span class="pl-c"><span class="pl-c">#</span> --desktop is for Linux only</span></pre></div>
+<p dir="auto">For macOS, omit --desktop:</p>
+<div class="highlight highlight-source-shell" dir="auto"><pre class="notranslate">curl -fsSL https://github.com/ahrasel/go-bash-alias-manager/releases/latest/download/install.sh <span class="pl-k">|</span> bash</pre></div>
 <p dir="auto">Install to a custom location:</p>
-<div class="highlight highlight-source-shell" dir="auto"><pre class="notranslate">sudo curl -fsSL https://github.com/ahrasel/go-bash-alias-manager/releases/latest/download/install.sh <span class="pl-k">|</span> bash -s -- --desktop --dest <span class="pl-k">~</span>/.local/bin</pre></div>
+<div class="highlight highlight-source-shell" dir="auto"><pre class="notranslate">curl -fsSL https://github.com/ahrasel/go-bash-alias-manager/releases/latest/download/install.sh <span class="pl-k">|</span> bash -s -- --dest <span class="pl-k">~</span>/.local/bin</pre></div>
 <p dir="auto">Install from source (dev):</p>
 <div class="highlight highlight-source-shell" dir="auto"><pre class="notranslate">git clone https://github.com/ahrasel/go-bash-alias-manager.git
 <span class="pl-c1">cd</span> go-bash-alias-manager
@@ -86,6 +88,7 @@ go build -o bash-alias-manager ./...
 <p dir="auto">Uninstall (remove files):</p>
 <div class="highlight highlight-source-shell" dir="auto"><pre class="notranslate">sudo rm -f /usr/local/bin/bash-alias-manager <span class="pl-k">||</span> <span class="pl-c1">true</span>
 rm -f <span class="pl-k">~</span>/.local/bin/bash-alias-manager <span class="pl-k">||</span> <span class="pl-c1">true</span>
+<span class="pl-c"><span class="pl-c">#</span> Linux desktop files (if installed with --desktop)</span>
 rm -f <span class="pl-k">~</span>/.local/share/applications/bash-alias-manager.desktop <span class="pl-k">||</span> <span class="pl-c1">true</span>
 rm -f <span class="pl-k">~</span>/.local/share/icons/hicolor/128x128/apps/bash-alias-manager.<span class="pl-k">*</span> <span class="pl-k">||</span> <span class="pl-c1">true</span>
 gtk-update-icon-cache -f -t <span class="pl-k">~</span>/.local/share/icons/hicolor <span class="pl-k">||</span> <span class="pl-c1">true</span>
