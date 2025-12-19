@@ -32,9 +32,9 @@ tag:
 
 release:
 	@if [ -z "$(VERSION)" ]; then echo "ERROR: VERSION is required. Example: make release VERSION=v1.2.3"; exit 1; fi
-	@if [ ! -f "dist/bash-alias-manager_$(VERSION)_linux_amd64.tar.gz" ]; then echo "ERROR: artifact dist/bash-alias-manager_$(VERSION)_linux_amd64.tar.gz not found. Run 'make build' or use 'make cut-release'"; exit 1; fi
+	@if ! ls dist/bash-alias-manager_$(VERSION)_*.tar.gz 1> /dev/null 2>&1; then echo "ERROR: no artifact found in dist/. Run 'make build' or use 'make cut-release'"; exit 1; fi
 	@echo "Creating GitHub release $(VERSION)..."
-	@gh release create $(VERSION) dist/bash-alias-manager_$(VERSION)_linux_amd64.tar.gz dist/bash-alias-manager_$(VERSION)_SHA256SUMS -t "$(VERSION)" -n "Release $(VERSION)" || echo "gh release create failed or release already exists"
+	@gh release create $(VERSION) dist/bash-alias-manager_$(VERSION)_*.tar.gz dist/bash-alias-manager_$(VERSION)_SHA256SUMS -t "$(VERSION)" -n "Release $(VERSION)" || echo "gh release create failed or release already exists"
 
 upload-install:
 	@if [ -z "$(VERSION)" ]; then echo "ERROR: VERSION is required. Example: make upload-install VERSION=v1.2.3"; exit 1; fi

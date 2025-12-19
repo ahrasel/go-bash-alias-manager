@@ -25,7 +25,28 @@ echo "Building release artifacts for $NAME version $VERSION"
 rm -rf "$DIST_DIR"
 mkdir -p "$DIST_DIR"
 
-TARGETS=("linux/amd64")
+# Detect current platform
+if command -v uname >/dev/null 2>&1; then
+    UNAME=$(uname -s | tr '[:upper:]' '[:lower:]')
+    ARCH=$(uname -m)
+else
+    echo "Cannot detect OS/ARCH"; exit 1
+fi
+
+case "$UNAME" in
+    linux) GOOS=linux;;
+    darwin) GOOS=darwin;;
+    mingw*|cygwin*|msys*) GOOS=windows;;
+    *) echo "Unsupported OS: $UNAME"; exit 1;;
+esac
+
+case "$ARCH" in
+    x86_64|amd64) GOARCH=amd64;;
+    aarch64|arm64) GOARCH=arm64;;
+    *) echo "Unsupported ARCH: $ARCH"; exit 1;;
+esac
+
+TARGETS=("$GOOS/$GOARCH")
 
 for t in "${TARGETS[@]}"; do
     IFS="/" read -r GOOS GOARCH <<< "$t"
@@ -41,8 +62,8 @@ for t in "${TARGETS[@]}"; do
 
     # Try building the binary from source
     echo "- Building binary from source"
-    # Enable CGO on Linux to allow Fyne/OpenGL bindings to build
-    if [ "$GOOS" = "linux" ]; then
+    # Enable CGO on Linux and macOS to allow Fyne/OpenGL bindings to build
+    if [ "$GOOS" = "linux" ] || [ "$GOOS" = "darwin" ]; then
         CGO=1
     else
         CGO=0

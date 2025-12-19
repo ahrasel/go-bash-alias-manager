@@ -65,6 +65,11 @@ esac
 
 echo "Detected: $GOOS/$GOARCH"
 
+if [ "$GOOS" != "linux" ] && [ "${INSTALL_DESKTOP:-false}" = true ]; then
+    echo "Warning: --desktop is only supported on Linux. Skipping desktop installation."
+    INSTALL_DESKTOP=false
+fi
+
 API_URL="https://api.github.com/repos/$REPO/releases"
 AUTH_HEADER=""
 if [ -n "${GITHUB_TOKEN:-}" ]; then

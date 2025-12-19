@@ -2,7 +2,7 @@
 
 https://github.com/ahrasel/go-bash-alias-manager
 
-A desktop application built with Go and Fyne to manage your bash aliases on Linux.
+A desktop application built with Go and Fyne to manage your bash aliases on Linux and macOS.
 
 ## Features
 
@@ -18,7 +18,7 @@ A desktop application built with Go and Fyne to manage your bash aliases on Linu
 ## Requirements
 
 - Go 1.21 or later
-- Linux (designed for Linux desktop)
+- Linux or macOS
 
 ## Installation
 
@@ -39,13 +39,19 @@ Run the executable:
 Install (recommended — latest release):
 
 ```bash
-sudo curl -fsSL https://github.com/ahrasel/go-bash-alias-manager/releases/latest/download/install.sh | bash -s -- --desktop
+curl -fsSL https://github.com/ahrasel/go-bash-alias-manager/releases/latest/download/install.sh | bash -s -- --desktop  # --desktop is for Linux only
+```
+
+For macOS, omit --desktop:
+
+```bash
+curl -fsSL https://github.com/ahrasel/go-bash-alias-manager/releases/latest/download/install.sh | bash
 ```
 
 Install to a custom location:
 
 ```bash
-sudo curl -fsSL https://github.com/ahrasel/go-bash-alias-manager/releases/latest/download/install.sh | bash -s -- --desktop --dest ~/.local/bin
+curl -fsSL https://github.com/ahrasel/go-bash-alias-manager/releases/latest/download/install.sh | bash -s -- --dest ~/.local/bin
 ```
 
 Install from source (dev):
@@ -63,6 +69,7 @@ Uninstall (remove files):
 ```bash
 sudo rm -f /usr/local/bin/bash-alias-manager || true
 rm -f ~/.local/bin/bash-alias-manager || true
+# Linux desktop files (if installed with --desktop)
 rm -f ~/.local/share/applications/bash-alias-manager.desktop || true
 rm -f ~/.local/share/icons/hicolor/128x128/apps/bash-alias-manager.* || true
 gtk-update-icon-cache -f -t ~/.local/share/icons/hicolor || true
