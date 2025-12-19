@@ -71,37 +71,45 @@ update-desktop-database ~/.local/share/applications || true</code></pre>
 </ol>
 <h2 dir="auto">Usage</h2>
 <p dir="auto">Run the executable:</p>
-<div class="highlight highlight-source-shell" dir="auto"><pre class="notranslate">./bash-alias-manager</pre></div>
+<pre lang="bash" class="notranslate"><code class="notranslate">./bash-alias-manager
+</code></pre>
 <h2 dir="auto">Quick Install / Uninstall / Run (short) ✅</h2>
 <p dir="auto">Install (recommended — latest release):</p>
-<div class="highlight highlight-source-shell" dir="auto"><pre class="notranslate">curl -fsSL https://github.com/ahrasel/go-bash-alias-manager/releases/latest/download/install.sh <span class="pl-k">|</span> bash -s -- --desktop  <span class="pl-c"><span class="pl-c">#</span> --desktop is for Linux only</span></pre></div>
+<pre lang="bash" class="notranslate"><code class="notranslate">curl -fsSL https://github.com/ahrasel/go-bash-alias-manager/releases/latest/download/install.sh | bash -s -- --desktop  # --desktop is for Linux only
+</code></pre>
 <p dir="auto">For macOS, omit --desktop:</p>
-<div class="highlight highlight-source-shell" dir="auto"><pre class="notranslate">curl -fsSL https://github.com/ahrasel/go-bash-alias-manager/releases/latest/download/install.sh <span class="pl-k">|</span> bash</pre></div>
+<pre lang="bash" class="notranslate"><code class="notranslate">curl -fsSL https://github.com/ahrasel/go-bash-alias-manager/releases/latest/download/install.sh | bash
+</code></pre>
 <p dir="auto">Install to a custom location:</p>
-<div class="highlight highlight-source-shell" dir="auto"><pre class="notranslate">curl -fsSL https://github.com/ahrasel/go-bash-alias-manager/releases/latest/download/install.sh <span class="pl-k">|</span> bash -s -- --dest <span class="pl-k">~</span>/.local/bin</pre></div>
+<pre lang="bash" class="notranslate"><code class="notranslate">curl -fsSL https://github.com/ahrasel/go-bash-alias-manager/releases/latest/download/install.sh | bash -s -- --dest ~/.local/bin
+</code></pre>
 <p dir="auto">Install from source (dev):</p>
-<div class="highlight highlight-source-shell" dir="auto"><pre class="notranslate">git clone https://github.com/ahrasel/go-bash-alias-manager.git
-<span class="pl-c1">cd</span> go-bash-alias-manager
+<pre lang="bash" class="notranslate"><code class="notranslate">git clone https://github.com/ahrasel/go-bash-alias-manager.git
+cd go-bash-alias-manager
 go mod tidy
 go build -o bash-alias-manager ./...
-./bash-alias-manager</pre></div>
+./bash-alias-manager
+</code></pre>
 <p dir="auto">Uninstall (remove files):</p>
-<div class="highlight highlight-source-shell" dir="auto"><pre class="notranslate">sudo rm -f /usr/local/bin/bash-alias-manager <span class="pl-k">||</span> <span class="pl-c1">true</span>
-rm -f <span class="pl-k">~</span>/.local/bin/bash-alias-manager <span class="pl-k">||</span> <span class="pl-c1">true</span>
-<span class="pl-c"><span class="pl-c">#</span> Linux desktop files (if installed with --desktop)</span>
-rm -f <span class="pl-k">~</span>/.local/share/applications/bash-alias-manager.desktop <span class="pl-k">||</span> <span class="pl-c1">true</span>
-rm -f <span class="pl-k">~</span>/.local/share/icons/hicolor/128x128/apps/bash-alias-manager.<span class="pl-k">*</span> <span class="pl-k">||</span> <span class="pl-c1">true</span>
-gtk-update-icon-cache -f -t <span class="pl-k">~</span>/.local/share/icons/hicolor <span class="pl-k">||</span> <span class="pl-c1">true</span>
-update-desktop-database <span class="pl-k">~</span>/.local/share/applications <span class="pl-k">||</span> <span class="pl-c1">true</span></pre></div>
+<pre lang="bash" class="notranslate"><code class="notranslate">sudo rm -f /usr/local/bin/bash-alias-manager || true
+rm -f ~/.local/bin/bash-alias-manager || true
+# Linux desktop files (if installed with --desktop)
+rm -f ~/.local/share/applications/bash-alias-manager.desktop || true
+rm -f ~/.local/share/icons/hicolor/128x128/apps/bash-alias-manager.* || true
+gtk-update-icon-cache -f -t ~/.local/share/icons/hicolor || true
+update-desktop-database ~/.local/share/applications || true
+</code></pre>
 <p dir="auto">Verify:</p>
-<div class="highlight highlight-source-shell" dir="auto"><pre class="notranslate">bash-alias-manager --help
-bash-alias-manager --version</pre></div>
+<pre lang="bash" class="notranslate"><code class="notranslate">bash-alias-manager --help
+bash-alias-manager --version
+</code></pre>
 <p dir="auto">Update:</p>
-<div class="highlight highlight-source-shell" dir="auto"><pre class="notranslate"><span class="pl-c"><span class="pl-c">#</span> Re-run the installer to update to the latest release</span>
-sudo curl -fsSL https://github.com/ahrasel/go-bash-alias-manager/releases/latest/download/install.sh <span class="pl-k">|</span> bash -s -- --desktop
+<pre lang="bash" class="notranslate"><code class="notranslate"># Re-run the installer to update to the latest release
+sudo curl -fsSL https://github.com/ahrasel/go-bash-alias-manager/releases/latest/download/install.sh | bash -s -- --desktop
 
-<span class="pl-c"><span class="pl-c">#</span> Or install a specific version</span>
-sudo curl -fsSL https://github.com/ahrasel/go-bash-alias-manager/releases/download/v1.1.3/install.sh <span class="pl-k">|</span> bash -s -- --desktop</pre></div>
+# Or install a specific version
+sudo curl -fsSL https://github.com/ahrasel/go-bash-alias-manager/releases/download/v1.1.3/install.sh | bash -s -- --desktop
+</code></pre>
 <p dir="auto">Quick troubleshooting:</p>
 <ul dir="auto">
 <li>If <code class="notranslate">curl</code> returns 404, pin to a tag: <code class="notranslate">.../releases/download/v1.1.2/install.sh</code>.</li>
@@ -131,14 +139,15 @@ bash-alias-manager --version
 <ul dir="auto">
 <li>Local: build artifacts and create a GitHub release using the <code class="notranslate">release.sh</code> helper. Example:</li>
 </ul>
-<div class="highlight highlight-source-shell" dir="auto"><pre class="notranslate"><span class="pl-c"><span class="pl-c">#</span> Build artifacts only</span>
+<pre lang="bash" class="notranslate"><code class="notranslate"># Build artifacts only
 ./release.sh package
 
-<span class="pl-c"><span class="pl-c">#</span> Create a GitHub release and upload artifacts using gh (or set GITHUB_TOKEN for API fallback)</span>
+# Create a GitHub release and upload artifacts using gh (or set GITHUB_TOKEN for API fallback)
 ./release.sh gh-release --version v1.2.3
 
-<span class="pl-c"><span class="pl-c">#</span> Build + publish</span>
-./release.sh gh-full --version v1.2.3</pre></div>
+# Build + publish
+./release.sh gh-full --version v1.2.3
+</code></pre>
 <ul dir="auto">
 <li>Automated: push a tag <code class="notranslate">v1.2.3</code> to the repository and the GitHub Actions workflow will build and publish artifacts automatically.</li>
 </ul>
