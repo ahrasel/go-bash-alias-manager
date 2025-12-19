@@ -141,7 +141,7 @@ else
     tar -xzf "$ARCHIVE" -C "$TMPDIR/extracted"
 fi
 
-BINPATH=$(find "$TMPDIR/extracted" -type f -name "$NAME*" -perm /111 | head -n1 || true)
+BINPATH=$(find "$TMPDIR/extracted" -type f -name "$NAME*" -perm +111 | head -n1 || true)
 if [ -z "$BINPATH" ]; then
     echo "Could not locate binary in archive"; exit 1
 fi

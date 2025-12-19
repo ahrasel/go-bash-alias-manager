@@ -39,7 +39,7 @@ release:
 upload-install:
 	@if [ -z "$(VERSION)" ]; then echo "ERROR: VERSION is required. Example: make upload-install VERSION=v1.2.3"; exit 1; fi
 	@echo "Uploading install.sh to release $(VERSION)..."
-	@gh release upload $(VERSION) install.sh || echo "upload failed"
+	@gh release upload $(VERSION) install.sh --clobber || echo "upload failed"
 
 cut-release:
 	@if [ -z "$(VERSION)" ]; then echo "ERROR: VERSION is required. Example: make cut-release VERSION=v1.2.3"; exit 1; fi
